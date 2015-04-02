@@ -15,6 +15,8 @@
 @property (strong, nonatomic) UITextField *usernameTextField;
 @property (strong, nonatomic) UITextField *passwordTextField;
 @property (strong, nonatomic) UITextField *emailTextField;
+@property (strong, nonatomic) UIScrollView *scrollView;
+@property (strong, nonatomic) UITextField *activeField;
 
 @end
 
@@ -32,6 +34,15 @@
                        forControlEvents:UIControlEventTouchUpInside];
     self.view.backgroundColor = [UIColor darkGrayColor];
     
+    // set up scroll view
+    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
+    self.scrollView.contentSize = self.view.frame.size;
+    self.scrollView.scrollEnabled = YES;
+    [self.scrollView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                               action:@selector(backgroundTapped)]];
+    [self.view addSubview:self.scrollView];
+    
+    
     // text field location variables
     CGRect viewFrame = self.view.frame;
     int textFieldHeight = 35;
@@ -48,7 +59,7 @@
     self.usernameTextField.textColor = [UIColor whiteColor];
     self.usernameTextField.font = [UIFont fontWithName:FONT_STRING size:17];
     self.usernameTextField.autocapitalizationType = UITextAutocapitalizationTypeNone;
-    [self.view addSubview:self.usernameTextField];
+    [self.scrollView addSubview:self.usernameTextField];
     
     self.passwordTextField = [[UITextField alloc] init];
     self.passwordTextField.frame = CGRectMake(0, 0, textFieldWidth, textFieldHeight);
@@ -57,7 +68,7 @@
     self.passwordTextField.textColor = [UIColor whiteColor];
     self.passwordTextField.font = [UIFont fontWithName:FONT_STRING size:17];
     self.passwordTextField.secureTextEntry = YES;
-    [self.view addSubview:self.passwordTextField];
+    [self.scrollView addSubview:self.passwordTextField];
     
     self.emailTextField = [[UITextField alloc] init];
     self.emailTextField.frame = CGRectMake(0, 0, textFieldWidth, textFieldHeight);
@@ -65,7 +76,7 @@
     self.emailTextField.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
     self.emailTextField.textColor = [UIColor whiteColor];
     self.emailTextField.font = [UIFont fontWithName:FONT_STRING size:17];
-    [self.view addSubview:self.emailTextField];
+    [self.scrollView addSubview:self.emailTextField];
     
     // set up text labels
     UILabel *usernameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth, textFieldHeight)];
@@ -90,9 +101,9 @@
     emailLabel.font = [UIFont fontWithName:FONT_STRING size:20];
     
     
-    [self.view addSubview:usernameLabel];
-    [self.view addSubview:passwordLabel];
-    [self.view addSubview:emailLabel];
+    [self.scrollView addSubview:usernameLabel];
+    [self.scrollView addSubview:passwordLabel];
+    [self.scrollView addSubview:emailLabel];
     
     // set up buttons -- login and signup
     // Login button
@@ -109,7 +120,7 @@
                     action:@selector(loginPressed)
           forControlEvents:UIControlEventTouchUpInside];
     
-    [self.view addSubview:loginButton];
+    [self.scrollView addSubview:loginButton];
 
     
     // Signup button
@@ -126,7 +137,7 @@
                      action:@selector(signupPressed)
            forControlEvents:UIControlEventTouchUpInside];
     
-    [self.view addSubview:signupButton];
+    [self.scrollView addSubview:signupButton];
     
     
     // FLYR text
@@ -143,9 +154,62 @@
     flyrLabel.font = [UIFont fontWithName:TITLE_FONT_STRING size:65.0];
     flyrLabel.textAlignment = NSTextAlignmentCenter;
     flyrLabel.textColor = [UIColor whiteColor];
-    [self.view addSubview:flyrLabel];
+    [self.scrollView addSubview:flyrLabel];
+    
+    [self registerForKeyboardNotifications];
     
 }
+
+- (void)registerForKeyboardNotifications
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWasShown:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillBeHidden:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+    
+}
+
+// Called when the UIKeyboardDidShowNotification is sent.
+
+- (void)keyboardWasShown:(NSNotification*)aNotification
+{
+    NSDictionary* info = [aNotification userInfo];
+    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    
+    UIEdgeInsets contentInsets = UIEdgeInsetsMake(0.0, 0.0, 1.2*kbSize.height, 0.0);
+    self.scrollView.contentInset = contentInsets;
+    self.scrollView.scrollIndicatorInsets = contentInsets;
+    
+    // If active text field is hidden by keyboard, scroll it so it's visible
+    // Your app might not need or want this behavior.
+    CGRect aRect = self.view.frame;
+    aRect.size.height -= kbSize.height;
+    if (!CGRectContainsPoint(aRect, self.activeField.frame.origin) ) {
+        [self.scrollView scrollRectToVisible:self.activeField.frame animated:YES];
+    }
+}
+
+// Called when the UIKeyboardWillHideNotification is sent
+- (void)keyboardWillBeHidden:(NSNotification*)aNotification
+{
+    UIEdgeInsets contentInsets = UIEdgeInsetsZero;
+    self.scrollView.contentInset = contentInsets;
+    self.scrollView.scrollIndicatorInsets = contentInsets;
+}
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField
+{
+    self.activeField = textField;
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField
+{
+    self.activeField = nil;
+}
+
 
 - (void)signupPressed {
     PFUser *user = [PFUser user];
