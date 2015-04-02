@@ -7,12 +7,14 @@
 //
 
 #import "SettingsViewController.h"
+#import <Parse/Parse.h>
 
 @interface SettingsViewController ()
 
 @property (nonatomic, strong) UISlider *radiusSlider;
 @property (nonatomic, strong) UILabel *radiusSliderLabel;
 @property (nonatomic) CGFloat oldRadiusSliderValue;
+@property (nonatomic, strong) PFUser *currentUser;
 
 @end
 
@@ -43,6 +45,8 @@
 {
     [super viewWillAppear:animated];
     
+    self.currentUser = [PFUser currentUser];
+    
     // variables for setting up the view
     CGRect statusBarFrame = [UIApplication sharedApplication].statusBarFrame;
     int navBarHeight = self.navigationController.navigationBar.frame.size.height;
@@ -58,7 +62,7 @@
     [self.radiusSlider addTarget:self
                           action:@selector(sliderChanged)
                 forControlEvents:UIControlEventAllTouchEvents];
-    self.radiusSlider.value = 10.0; // TODO: set this to the actual current value
+    self.radiusSlider.value = [self.currentUser[@"radius"] floatValue];; // TODO: set this to the actual current value
     
     // set up slider label
     self.radiusSliderLabel = [[UILabel alloc] initWithFrame:CGRectMake(indentWidth, self.radiusSlider.frame.origin.y + 30, self.view.frame.size.width - 2*indentWidth, radiusSliderHeight)];
@@ -71,7 +75,7 @@
     [self.view addSubview:self.radiusSliderLabel];
     
     // save old slider value
-    self.oldRadiusSliderValue = 10.0; // TODO: set this to the actual current value
+    self.oldRadiusSliderValue = [self.currentUser[@"radius"] floatValue];
 }
 
 
@@ -84,26 +88,14 @@
 
 #pragma mark - Navigation
 
-//- (void) backButtonPressed
-//{
-//    float radius = self.radiusSlider.value;
-//    if (radius != self.oldRadiusSliderValue) {
-//        // TODO: save the new settings
-//        NSLog(@"%.01f",radius);
-//    }
-//    
-//    [self.navigationController popViewControllerAnimated:YES];
-//}
-
 - (void) viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
     float radius = self.radiusSlider.value;
-    if (radius != self.oldRadiusSliderValue) {
-        // TODO: save the new settings
-        NSLog(@"%.01f",radius);
-    }
-    
+    if (radius != self.oldRadiusSliderValue) { // need to update user's radius
+            self.currentUser[@"radius"] = [NSNumber numberWithFloat:radius];
+            [self.currentUser saveInBackground];
+        }
 }
 
 #pragma mark - slider

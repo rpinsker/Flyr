@@ -153,6 +153,8 @@
     user.password = self.passwordTextField.text;
     user.email = self.emailTextField.text;
     
+    user[@"radius"] = [NSNumber numberWithDouble:10.0];
+    
     [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         if (!error) {
             

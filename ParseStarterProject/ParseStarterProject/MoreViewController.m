@@ -9,6 +9,7 @@
 #import "MoreViewController.h"
 #import "ShareViewController.h"
 #import "SettingsViewController.h"
+#import "CreateEventViewController.h"
 #import <Parse/Parse.h>
 
 @interface MoreViewController () <UITableViewDataSource, UITableViewDelegate>
@@ -80,7 +81,8 @@
 {
     if (indexPath.row == CREATE_EVENT) {
         // create event
-        NSLog(@"event");
+        CreateEventViewController *createEventVC = [[CreateEventViewController alloc] init];
+        [self.navigationController pushViewController:createEventVC animated:YES];
     }
     else if (indexPath.row == SETTINGS) {
         // settings
