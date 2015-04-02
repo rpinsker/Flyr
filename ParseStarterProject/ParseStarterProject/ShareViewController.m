@@ -40,37 +40,44 @@
     {
         [self.navigationController pushViewController:[[EventViewController alloc] init]
                                              animated:YES];
+        return;
     }
+    
+}
+
+- (void) viewDidLoad
+{
+    [super viewDidLoad];
     
     //set up gesture recognizer to go back (which is actually going forward)
     UISwipeGestureRecognizer *swipeLeft = [[UISwipeGestureRecognizer alloc] initWithTarget:self
                                                                                     action:@selector(back)];
     swipeLeft.direction = UISwipeGestureRecognizerDirectionLeft;
     [self.view addGestureRecognizer:swipeLeft];
- 
-// TODO: (decide) could ask for contacts and implement a search function to send to people. Otherwise, could just give the option to email, text, facebook message, etc. because those have the contacts/search functionality already built in in the compose view.
-//    //ask for contacts
-//    ABAddressBookRef addressBookRef = ABAddressBookCreateWithOptions(NULL, NULL);
-//    if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusNotDetermined) {
-//        ABAddressBookRequestAccessWithCompletion(addressBookRef, ^(bool granted, CFErrorRef error) {
-//            if (granted) {
-//                NSLog(@"Access granted!");
-//            } else {
-//                NSLog(@"Access denied!");
-//            }
-//        });
-//    }
+    
+    // TODO: (decide) could ask for contacts and implement a search function to send to people. Otherwise, could just give the option to email, text, facebook message, etc. because those have the contacts/search functionality already built in in the compose view.
+    //    //ask for contacts
+    //    ABAddressBookRef addressBookRef = ABAddressBookCreateWithOptions(NULL, NULL);
+    //    if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusNotDetermined) {
+    //        ABAddressBookRequestAccessWithCompletion(addressBookRef, ^(bool granted, CFErrorRef error) {
+    //            if (granted) {
+    //                NSLog(@"Access granted!");
+    //            } else {
+    //                NSLog(@"Access denied!");
+    //            }
+    //        });
+    //    }
     
     // get info about screen size
     CGRect mainBounds = [UIScreen mainScreen].bounds;
     int statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
     
-//    //set up image view for background TODO: use correct image
-//    UIImageView *imageView = [[UIImageView alloc] initWithImage:self.eventImage];
-//    imageView.frame = CGRectMake(0, statusBarHeight + 10, mainBounds.size.width, mainBounds.size.height - (statusBarHeight + 10));
-//    imageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
-//    imageView.layer.borderWidth = 10.0;
-//    [self.view addSubview:imageView];
+    //    //set up image view for background TODO: use correct image
+    //    UIImageView *imageView = [[UIImageView alloc] initWithImage:self.eventImage];
+    //    imageView.frame = CGRectMake(0, statusBarHeight + 10, mainBounds.size.width, mainBounds.size.height - (statusBarHeight + 10));
+    //    imageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
+    //    imageView.layer.borderWidth = 10.0;
+    //    [self.view addSubview:imageView];
     
     //set up table view
     int optionsTableViewHeight = 200; // if you change this, change caption height in EventTableViewCell
@@ -88,7 +95,6 @@
     
     //set background color
     self.view.backgroundColor = [UIColor darkGrayColor];
-    
 }
 
 #pragma mark - Table View

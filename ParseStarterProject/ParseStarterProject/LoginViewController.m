@@ -24,6 +24,13 @@
 
 @implementation LoginViewController
 
+- (void) viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    self.view.userInteractionEnabled = YES;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -197,6 +204,8 @@
 
 - (void) loginPressed
 {
+    self.view.userInteractionEnabled = NO;
+    
     NSString *username = self.usernameTextField.text;
     NSString *password = self.passwordTextField.text;
     
@@ -209,6 +218,7 @@
                                             [self presentViewController:nav animated:NO completion:nil];
                                         } else {
                                             // The login failed. Check error to see why.
+                                            self.view.userInteractionEnabled = YES;
                                         }
                                     }];
     
