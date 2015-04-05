@@ -179,8 +179,16 @@
 {
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser.username) {
-        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
-        [self presentViewController:nav animated:NO completion:nil];
+        [PFUser logInWithUsernameInBackground:currentUser.username password:currentUser.password
+                                        block:^(PFUser *user, NSError *error) {
+                                            if (user) {
+                                                UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
+                                                [self presentViewController:nav animated:NO completion:nil];
+                                            } else {
+                                                // The login failed. Check error to see why.
+                                                self.view.userInteractionEnabled = YES;
+                                            }
+                                        }];
     } else {
         // show the signup or login screen
     }

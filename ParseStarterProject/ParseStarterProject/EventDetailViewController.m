@@ -13,7 +13,7 @@
 #define FONT_STRING @"AvenirNext-Medium"
 #define FONT_CAPTION_STRING_SIZE 15
 #define BUTTON_HEIGHT 60
-#define GO_OR_NO_BUTTON_STRING_SIZE 25
+#define GO_OR_NO_BUTTON_STRING_SIZE 23
 
 @interface EventDetailViewController ()
 
