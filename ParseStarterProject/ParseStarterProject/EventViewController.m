@@ -74,7 +74,7 @@
     if ([[PFUser currentUser][@"setUpDone"] isEqual:@NO]) {
         [self setUpUser];
     }
-
+    
     
     CGRect mainScreenBounds = [UIScreen mainScreen].bounds;
     
@@ -175,7 +175,7 @@
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
-    eventQuery.limit = 4;
+    eventQuery.limit = 2;
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             // The find succeeded.
@@ -184,7 +184,7 @@
             self.eventsToShow = objects;
             [self.tableView reloadData];
             if ([objects count] == 0) {
-                self.tableView.hidden = YES;
+                //self.tableView.hidden = YES;
             }
             else {
                 self.tableView.hidden = NO;
@@ -307,7 +307,7 @@
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
-
+    
     NSMutableArray *eventItemsMut = [NSMutableArray array];
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
         [eventItemsMut addObjectsFromArray:items];
@@ -380,7 +380,7 @@
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"%lu",indexPath.row);
-    if (indexPath.row == [self.eventsToShow count] -2) {
+    if (indexPath.row == [self.eventsToShow count] - 1) {
         [self loadMoreData];
     }
 }
@@ -399,14 +399,23 @@
     eventQuery.limit = 5;
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
         if (!error) {
-            NSInteger lastSection = [self.eventsToShow count];
-            self.eventsToShow = [self.eventsToShow arrayByAddingObjectsFromArray:items];
-            
-            //for each item in items prepare item for insertion
-            NSInteger counter = [items count];
-            NSMutableIndexSet *indexSet = [NSMutableIndexSet new];
-            [indexSet addIndexesInRange:NSMakeRange(lastSection, counter)];
-            [self.tableView insertSections:indexSet withRowAnimation:UITableViewRowAnimationTop];
+            if ([items count] != 0) {
+                NSInteger lastSection = [self.eventsToShow count];
+                self.eventsToShow = [self.eventsToShow arrayByAddingObjectsFromArray:items];
+                
+                //for each item in items prepare item for insertion
+                NSInteger counter = [items count];
+                NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
+                //            NSMutableIndexSet *indexSet = [NSMutableIndexSet new];
+                for (NSInteger i = lastSection; i < counter + lastSection; i++) {
+                    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
+                    [indexPaths addObject:indexPath];
+                }
+                
+                //            [indexSet addIndexesInRange:NSMakeRange(lastSection, counter)];
+                [self.tableView insertRowsAtIndexPaths:indexPaths  withRowAnimation:UITableViewRowAnimationTop];
+                //            [self.tableView insertSections:indexSet withRowAnimation:UITableViewRowAnimationTop];
+            }
         }
         
     }];
