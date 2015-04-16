@@ -15,5 +15,6 @@
 @property (nonatomic) BOOL isLogout;
 
 @property (strong, nonatomic) PFObject *event;
+@property (strong, nonatomic) UIImage *eventImage;
 
 @end

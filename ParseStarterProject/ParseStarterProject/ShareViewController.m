@@ -18,6 +18,8 @@
 
 @interface ShareViewController () <MFMessageComposeViewControllerDelegate, MFMailComposeViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
 
+@property (nonatomic, strong) UIImageView *imageView;
+
 @end
 
 @implementation ShareViewController
@@ -42,6 +44,20 @@
                                              animated:YES];
         return;
     }
+    
+    //set up image view for background
+    int statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
+    CGRect mainBounds = [UIScreen mainScreen].bounds;
+    if (!self.imageView) {
+        self.imageView = [[UIImageView alloc] init];
+        self.imageView.frame = CGRectMake(0, statusBarHeight + 10, mainBounds.size.width, mainBounds.size.height - (statusBarHeight + 10));
+        self.imageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
+        self.imageView.layer.borderWidth = 10.0;
+        [self.view addSubview:self.imageView ];
+        [self.view sendSubviewToBack:self.imageView];
+    }
+    self.imageView.image = self.eventImage;
+    
     
 }
 
@@ -70,14 +86,6 @@
     
     // get info about screen size
     CGRect mainBounds = [UIScreen mainScreen].bounds;
-    int statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
-    
-    //    //set up image view for background TODO: use correct image
-    //    UIImageView *imageView = [[UIImageView alloc] initWithImage:self.eventImage];
-    //    imageView.frame = CGRectMake(0, statusBarHeight + 10, mainBounds.size.width, mainBounds.size.height - (statusBarHeight + 10));
-    //    imageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
-    //    imageView.layer.borderWidth = 10.0;
-    //    [self.view addSubview:imageView];
     
     //set up table view
     int optionsTableViewHeight = 200; // if you change this, change caption height in EventTableViewCell
@@ -94,7 +102,7 @@
     [self.view addSubview:optionsTableView];
     
     //set background color
-    self.view.backgroundColor = [UIColor darkGrayColor];
+    //self.view.backgroundColor = [UIColor darkGrayColor];
 }
 
 #pragma mark - Table View

@@ -30,6 +30,7 @@
 @property (nonatomic, strong) UIAlertView *locationAlertView;
 @property (nonatomic, strong) UIAlertView *zipcodeAlertView;
 @property (nonatomic, strong) CLLocationManager *locationManager;
+@property (nonatomic, strong) UIImage *eventImage;
 
 @end
 
@@ -355,6 +356,13 @@
     
     cell.caption = [NSString stringWithFormat:@"TIME: %@ - %@\n\nLOCATION: %@",startTime,endTime,event[@"stringLocation"]];
     
+    
+    PFFile *imageFile = event[@"image"];
+    [imageFile getDataInBackgroundWithBlock:^(NSData *imageData, NSError *error) {
+        UIImage *image = [UIImage imageWithData:imageData];
+        cell.image = image;
+    }];
+    
     return cell;
 }
 
@@ -424,6 +432,7 @@
         EventDetailViewController *detailVC = [[EventDetailViewController alloc] init];
         detailVC.detailString = eventSwiped[@"eventDescription"];
         detailVC.addressString = eventSwiped[@"stringLocation"];
+        
         [self.navigationController pushViewController:detailVC
                                              animated:YES];
     }
@@ -448,6 +457,8 @@
         ShareViewController *shareVC = [self.navigationController.viewControllers objectAtIndex:0];
         shareVC.eventVC = self;
         shareVC.event = event;
+        UITableViewCell *cellSwiped = [self.tableView cellForRowAtIndexPath:indexPath];
+        shareVC.eventImage = cellSwiped.image;
     }
 }
 
