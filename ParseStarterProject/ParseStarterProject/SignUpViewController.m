@@ -17,6 +17,9 @@
 @property (strong, nonatomic) UITextField *emailTextField;
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) UITextField *activeField;
+@property (strong, nonatomic) UIButton *signupButton;
+@property (strong, nonatomic) UIButton *loginButton;
+@property (strong, nonatomic) UILabel *errorLabel;
 
 @end
 
@@ -24,6 +27,14 @@
 #define TITLE_FONT_STRING @"AvenirNext-Medium"
 
 @implementation SignUpViewController
+
+- (void) viewWillAppear:(BOOL)animated
+{
+    // make sure buttons are enabled when view appears
+    self.signupButton.enabled = YES;
+    self.loginButton.enabled = YES;
+    self.errorLabel.hidden = YES;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -59,6 +70,7 @@
     self.usernameTextField.textColor = [UIColor whiteColor];
     self.usernameTextField.font = [UIFont fontWithName:FONT_STRING size:17];
     self.usernameTextField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    self.usernameTextField.autocorrectionType = UITextAutocorrectionTypeNo;
     [self.scrollView addSubview:self.usernameTextField];
     
     self.passwordTextField = [[UITextField alloc] init];
@@ -68,6 +80,7 @@
     self.passwordTextField.textColor = [UIColor whiteColor];
     self.passwordTextField.font = [UIFont fontWithName:FONT_STRING size:17];
     self.passwordTextField.secureTextEntry = YES;
+    self.passwordTextField.autocorrectionType = UITextAutocorrectionTypeNo;
     [self.scrollView addSubview:self.passwordTextField];
     
     self.emailTextField = [[UITextField alloc] init];
@@ -76,6 +89,9 @@
     self.emailTextField.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
     self.emailTextField.textColor = [UIColor whiteColor];
     self.emailTextField.font = [UIFont fontWithName:FONT_STRING size:17];
+    self.emailTextField.keyboardType = UIKeyboardTypeEmailAddress;
+    self.emailTextField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    self.emailTextField.autocorrectionType = UITextAutocorrectionTypeNo;
     [self.scrollView addSubview:self.emailTextField];
     
     // set up text labels
@@ -100,45 +116,57 @@
     emailLabel.textAlignment = NSTextAlignmentCenter;
     emailLabel.font = [UIFont fontWithName:FONT_STRING size:20];
     
-    
     [self.scrollView addSubview:usernameLabel];
     [self.scrollView addSubview:passwordLabel];
     [self.scrollView addSubview:emailLabel];
     
     // set up buttons -- login and signup
     // Login button
-    UIButton *loginButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth/2, textFieldHeight)];
-    loginButton.center = CGPointMake(viewFrame.size.width * 6 / 7, self.view.frame.size.height - textFieldHeight);
-    loginButton.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
-    loginButton.layer.cornerRadius = 10.0;
-    [loginButton setTitle:@"login" forState:UIControlStateNormal];
-    loginButton.titleLabel.textColor = [UIColor whiteColor];
-    loginButton.titleLabel.textAlignment = NSTextAlignmentCenter;
-    loginButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
+    self.loginButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth/2, textFieldHeight)];
+    self.loginButton.center = CGPointMake(viewFrame.size.width * 6 / 7, self.view.frame.size.height - textFieldHeight);
+    self.loginButton.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
+    self.loginButton.layer.cornerRadius = 10.0;
+    [self.loginButton setTitle:@"login" forState:UIControlStateNormal];
+    self.loginButton.titleLabel.textColor = [UIColor whiteColor];
+    self.loginButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.loginButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
     
-    [loginButton addTarget:self
+    [self.loginButton addTarget:self
                     action:@selector(loginPressed)
           forControlEvents:UIControlEventTouchUpInside];
     
-    [self.scrollView addSubview:loginButton];
+    [self.scrollView addSubview:self.loginButton];
 
     
     // Signup button
-    UIButton *signupButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth/2, textFieldHeight)];
-    signupButton.center = CGPointMake(viewFrame.size.width / 2, self.view.frame.size.height - 3*textFieldHeight);
-    signupButton.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
-    signupButton.layer.cornerRadius = 10.0;
-    [signupButton setTitle:@"sign up" forState:UIControlStateNormal];
-    signupButton.titleLabel.textColor = [UIColor whiteColor];
-    signupButton.titleLabel.textAlignment = NSTextAlignmentCenter;
-    signupButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
+    self.signupButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth/2, textFieldHeight)];
+    self.signupButton.center = CGPointMake(viewFrame.size.width / 2, self.view.frame.size.height - 3*textFieldHeight);
+    self.signupButton.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
+    self.signupButton.layer.cornerRadius = 10.0;
+    [self.signupButton setTitle:@"sign up" forState:UIControlStateNormal];
+    self.signupButton.titleLabel.textColor = [UIColor whiteColor];
+    self.signupButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.signupButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
     
-    [signupButton addTarget:self
+    [self.signupButton addTarget:self
                      action:@selector(signupPressed)
            forControlEvents:UIControlEventTouchUpInside];
     
-    [self.scrollView addSubview:signupButton];
+    [self.scrollView addSubview:self.signupButton];
     
+    
+    // set up error label location
+    int signupYBottom = self.signupButton.frame.origin.y + self.signupButton.frame.size.height;
+    int errorLabelYCenter =  signupYBottom + (self.loginButton.frame.origin.y - signupYBottom);
+    self.errorLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, textFieldHeight)];
+    self.errorLabel.center = CGPointMake(viewFrame.size.width/2, errorLabelYCenter);
+    self.errorLabel.textColor = [UIColor whiteColor];
+    self.errorLabel.textAlignment = NSTextAlignmentCenter;
+    self.errorLabel.font = [UIFont fontWithName:FONT_STRING size:14.0];
+    self.errorLabel.numberOfLines = 2;
+    self.errorLabel.hidden = YES;
+    
+    [self.scrollView addSubview:self.errorLabel];
     
     // FLYR text
     UILabel *flyrLabel;
@@ -212,7 +240,56 @@
 
 
 - (void)signupPressed {
+    
+    // disable buttons to prevent double pressing and resign any first responder
+    if ([self.usernameTextField isFirstResponder])
+        [self.usernameTextField resignFirstResponder];
+    else if ([self.passwordTextField isFirstResponder])
+        [self.passwordTextField resignFirstResponder];
+    else if ([self.emailTextField isFirstResponder])
+        [self.emailTextField resignFirstResponder];
+    
+    self.loginButton.enabled = NO;
+    self.signupButton.enabled = NO;
+    
+    // make sure username only has lowercase letters and numbers
+    NSMutableCharacterSet *lowercaseLettersAndNumbers = [[NSCharacterSet lowercaseLetterCharacterSet] mutableCopy];
+    [lowercaseLettersAndNumbers formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]];
+    if (![[self.usernameTextField.text stringByTrimmingCharactersInSet:lowercaseLettersAndNumbers] isEqualToString:@""]) {
+        // there are characters other than a-z and 0-9
+        self.errorLabel.hidden = NO;
+        self.errorLabel.text = @"username must be only numbers and lowercase letters";
+        [self.errorLabel sizeToFit];
+        self.signupButton.enabled = YES;
+        self.loginButton.enabled = YES;
+        return;
+    }
+    
+    //Check if password is secure and correct
+    if ([self.passwordTextField.text length] < 8) {
+        //Password is shorter than 8
+        self.errorLabel.hidden = NO;
+        self.errorLabel.text = @"password must be at least 8 characters long";
+        [self.errorLabel sizeToFit];
+        self.signupButton.enabled = YES;
+        self.loginButton.enabled = YES;
+        return;
+    }
+    
+    if ([self.passwordTextField.text rangeOfCharacterFromSet:[NSCharacterSet letterCharacterSet]].location == NSNotFound || [self.passwordTextField.text rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet]].location == NSNotFound) {
+        //Password does not have a letter / a number
+        self.errorLabel.hidden = NO;
+        self.errorLabel.text = @"password needs at least a letter and a number";
+        [self.errorLabel sizeToFit];
+        self.signupButton.enabled = YES;
+        self.loginButton.enabled = YES;
+        return;
+    }
+    
+    
+    // set up user
     PFUser *user = [PFUser user];
+    
     user.username = self.usernameTextField.text;
     user.password = self.passwordTextField.text;
     user.email = self.emailTextField.text;
@@ -221,6 +298,8 @@
     user[@"setUpDone"] = @NO;
     
     [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        self.signupButton.enabled = YES;
+        self.loginButton.enabled = YES;
         if (!error) {
             [PFUser logInWithUsernameInBackground:self.usernameTextField.text password:self.passwordTextField.text block:^(PFUser *user, NSError *error) {
                 [self.presentingViewController dismissViewControllerAnimated:NO completion:NULL];
@@ -228,10 +307,14 @@
 
         } else {
             [PFUser logOut];
-            NSString *errorString = [error userInfo][@"error"];
+            NSString *errorString = error.localizedDescription;
             NSLog(@"%@",errorString);
+            self.errorLabel.text = [NSString stringWithFormat:@"Parse Error: \n%@", errorString];
+            self.errorLabel.numberOfLines = 2;
+            self.errorLabel.hidden = NO;
         }
     }];
+
 }
 
 - (void) loginPressed {
