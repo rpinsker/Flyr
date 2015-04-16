@@ -20,6 +20,7 @@
 @property (nonatomic, assign) UIImagePickerController *imagePicker;
 @property (nonatomic, strong) UIButton *takeAPhotoButton;
 @property (nonatomic, strong) UIScrollView *sv;
+@property (nonatomic, strong) UIButton *nextPageButton;
 
 @end
 
@@ -50,6 +51,7 @@
     // TODO: fix GR on page 2 of sv
     self.sv.pagingEnabled = YES;
     self.sv.directionalLockEnabled = YES;
+    self.sv.delegate = self;
     
     
     [self.view addSubview:self.sv];
@@ -111,6 +113,16 @@
     self.descriptionTextView.attributedText = text;
     self.descriptionTextView.delegate = self;
     [self.sv addSubview:self.descriptionTextView];
+    
+    
+    // next page button
+    int imageViewBottomY = self.imageView.frame.origin.y + imageViewHeight;
+    self.nextPageButton = [[UIButton alloc] initWithFrame:CGRectMake(viewFrame.size.width/2, imageViewBottomY + 1.5*textFieldHeight, viewFrame.size.width / 2, textFieldHeight)];
+    UIFont *buttonTitleFont = [UIFont fontWithName:FONT_STRING size:20];
+    NSAttributedString *nextButtonTitle = [[NSAttributedString alloc] initWithString:@"next page ----->" attributes:@{buttonTitleFont : NSFontAttributeName, NSForegroundColorAttributeName : [UIColor whiteColor]}];
+    [self.nextPageButton setTitle:[nextButtonTitle string] forState:UIControlStateNormal];
+    [self.nextPageButton addTarget:self action:@selector(nextPage) forControlEvents:UIControlEventTouchUpInside];
+    [self.sv addSubview:self.nextPageButton];
     
     // set up date pickers and their labels
     self.startTimeDatePicker = [[UIDatePicker alloc] init];
@@ -186,6 +198,23 @@
     [self.navigationController popViewControllerAnimated:YES];
     
 
+}
+
+- (void) nextPage
+{
+    
+    CGRect pageTwo = CGRectMake(self.view.frame.size.width, 0, self.view.frame.size.width, self.view.frame.size.height);
+    [self.sv scrollRectToVisible:pageTwo animated:YES];
+}
+
+- (void) scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    if (scrollView.contentOffset.x == 0) {
+        self.navigationItem.rightBarButtonItem.enabled = NO;
+    }
+    else {
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+    }
 }
 
 - (void) backgroundTapped
