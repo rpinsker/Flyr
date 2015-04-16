@@ -32,6 +32,7 @@
 @property (nonatomic, strong) UIAlertView *zipcodeAlertView;
 @property (nonatomic, strong) CLLocationManager *locationManager;
 @property (nonatomic, strong) UIImage *eventImage;
+@property (nonatomic, strong) NSDate *lastPullOfEvents;
 
 @end
 
@@ -70,6 +71,34 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    
+    /* hard code a bunch of events
+    for (int i = 0; i < 100; i++) {
+        PFObject *newEvent = [PFObject objectWithClassName:@"Event"];
+        newEvent[@"eventName"] = [NSString stringWithFormat:@"event %d",i];
+        newEvent[@"startTime"] = [NSDate dateWithTimeIntervalSinceNow:-3600];
+        newEvent[@"endTime"] = [NSDate dateWithTimeIntervalSinceNow:3600 * 7 + 60*i];
+        newEvent[@"stringLocation"] = @"1003 E 61st Street Chicago, IL 60637";
+        newEvent[@"eventDescription"] = @"descriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\n";
+        
+        [newEvent saveInBackground];
+        
+        
+        CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+        [geocoder geocodeAddressString:@"1003 E 61st Street Chicago, IL 60637" completionHandler:^(NSArray *placemarks, NSError *error) {
+            if (placemarks) {
+                CLPlacemark *placemark = placemarks[0];
+                PFGeoPoint *geopoint = [PFGeoPoint geoPointWithLocation:placemark.location];
+                newEvent[@"location"] = geopoint;
+                [newEvent saveInBackground];
+            }
+        }];
+    }
+    
+    /* end hard coding events */
+
+    
+    
     
     if ([[PFUser currentUser][@"setUpDone"] isEqual:@NO]) {
         [self setUpUser];
@@ -176,7 +205,7 @@
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
     [eventQuery orderByAscending:@"endTime"];
-    eventQuery.limit = 2;
+    eventQuery.limit = 5;
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             // The find succeeded.
@@ -190,6 +219,7 @@
             else {
                 self.tableView.hidden = NO;
             }
+            self.lastPullOfEvents = [NSDate date];
         } else {
             // Log details of the failure
             NSLog(@"Error: %@ %@", error, [error userInfo]);
@@ -306,14 +336,16 @@
     NSNumber *usersRadius = [PFUser currentUser][@"radius"];
     PFQuery *eventQuery = [PFQuery queryWithClassName:@"Event"];
     eventQuery.limit = 4;
-    eventQuery.skip = [self.eventsToShow count];
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
+    [eventQuery whereKey:@"startTime" greaterThan:self.lastPullOfEvents];
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
-    
+    [eventQuery orderByAscending:@"endTime"];
     NSMutableArray *eventItemsMut = [NSMutableArray array];
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
         [eventItemsMut addObjectsFromArray:items];
+        [(UIRefreshControl *)sender endRefreshing];
+        self.lastPullOfEvents = [NSDate date];
         if ([items count] == 0) {
             //self.tableView.hidden = YES;
             //                    self.refreshButton.hidden = NO;
@@ -323,12 +355,13 @@
         }
         else{
             self.tableView.hidden = NO;
+            [eventItemsMut addObjectsFromArray:self.eventsToShow];
             self.eventsToShow = [NSArray arrayWithArray:eventItemsMut];
             [self.tableView reloadData];
-            [(UIRefreshControl *)sender endRefreshing];
             //                    self.refreshButton.hidden = YES;
             //                    self.refreshButton.enabled = NO;
         }
+        
     }];
     //    }
     //    else { // if no internet, end the refresh control
@@ -383,7 +416,7 @@
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"%lu",indexPath.row);
-    if (indexPath.row == [self.eventsToShow count] - 1) {
+    if (indexPath.row == [self.eventsToShow count] - 2) {
         [self loadMoreData];
     }
 }
@@ -400,14 +433,22 @@
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
     eventQuery.skip = [self.eventsToShow count];
     eventQuery.limit = 5;
+    [eventQuery orderByAscending:@"endTime"];
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
         if (!error) {
+            self.lastPullOfEvents = [NSDate date];
             if ([items count] != 0) {
+                NSMutableArray *itemsToAddToEventsToShow = [[NSMutableArray alloc] initWithArray:items];
                 NSInteger lastSection = [self.eventsToShow count];
-                self.eventsToShow = [self.eventsToShow arrayByAddingObjectsFromArray:items];
+                for (PFObject *item in items) { // add the new items
+                    if ([self.eventsToShow containsObject:item]) { // if it's already shown, remove it
+                        [itemsToAddToEventsToShow removeObject:item];
+                    }
+                }
+                self.eventsToShow = [self.eventsToShow arrayByAddingObjectsFromArray:itemsToAddToEventsToShow];
                 
                 //for each item in items prepare item for insertion
-                NSInteger counter = [items count];
+                NSInteger counter = [itemsToAddToEventsToShow count];
                 NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
                 //            NSMutableIndexSet *indexSet = [NSMutableIndexSet new];
                 for (NSInteger i = lastSection; i < counter + lastSection; i++) {

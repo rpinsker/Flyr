@@ -54,9 +54,6 @@
             CLPlacemark *placemark = placemarks[0];
             MKPlacemark *mkplacemark = [[MKPlacemark alloc] initWithPlacemark:placemark];
             [map addAnnotation:mkplacemark];
-            //MKCoordinateRegion region;
-            //region.center = mkplacemark.coordinate;
-            //region.span = MKCoordinateSpanMake(1, 1);
             
             if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) { // show their location on the map
                 map.showsUserLocation = YES;
@@ -71,10 +68,12 @@
                 MKCoordinateSpan span = MKCoordinateSpanMake(2.3*deltaX, 2.3*deltaY);
                 map.region = MKCoordinateRegionMake(mkplacemark.coordinate, span);
             }
-            
-           // [map setVisibleMapRect:MKMapRectMake(, , , )];
-            
-           // [self.mapView mapRectThatFits:self.mapView.visibleMapRect edgePadding:UIEdgeInsetsMake(0, offset, 0, offset)];
+            else {
+                MKCoordinateRegion region;
+                region.center = mkplacemark.coordinate;
+                region.span = MKCoordinateSpanMake(.005, .005);
+                map.region = region;
+            }
             
         }
     }];
