@@ -21,12 +21,14 @@
 #define HEIGHT_EDGE_INSENT 23
 
 
-@interface EventViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface EventViewController () <UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate>
 
 @property (nonatomic, strong) UIScrollView *sv;
 @property (nonatomic) NSInteger numEventsToShow;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSArray *eventsToShow;
+@property (nonatomic, strong) UIAlertView *locationAlertView;
+@property (nonatomic, strong) UIAlertView *zipcodeAlertView;
 
 @end
 
@@ -67,7 +69,7 @@
     [super viewDidLoad];
     
     if ([[PFUser currentUser][@"setUpDone"] isEqual:@NO]) {
-        NSLog(@"not done");
+        [self setUpUser];
     }
     
     CGRect mainScreenBounds = [UIScreen mainScreen].bounds;
@@ -179,6 +181,55 @@
     
     [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
     [self.tableView addSubview:refreshControl];
+    
+}
+
+# pragma mark - alert view for location
+
+- (void) setUpUser
+{
+    self.locationAlertView = [[UIAlertView alloc] initWithTitle:@"location" message:@"Would you like to allow Flyr to use your current location to find events near you? You can also enter a zip code to see events in the area." delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil];
+    self.locationAlertView.delegate = self;
+    [self.locationAlertView show];
+}
+
+
+
+- (void) alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    if ([alertView isEqual:self.locationAlertView]) { // just asked if they want to allow access to location or enter zip code
+        if (buttonIndex == 0) { // user wants to enter a zip code
+            if (!self.zipcodeAlertView) {
+                self.zipcodeAlertView = [[UIAlertView alloc] initWithTitle:@"zipcode" message:@"enter zip code or hit cancel to have Flyr use your actual location" delegate:self cancelButtonTitle:@"use my location" otherButtonTitles:@"enter", nil];
+                self.zipcodeAlertView.delegate = self;
+                self.zipcodeAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+                [self.zipcodeAlertView textFieldAtIndex:0].keyboardType = UIKeyboardTypeNumberPad;
+            }
+            [self.zipcodeAlertView show];
+        }
+    }
+    else if ([alertView isEqual:self.zipcodeAlertView]) {
+        if (buttonIndex == 0) { // try to get permission for location
+            
+        }
+        else if ([[alertView textFieldAtIndex:0].text isEqualToString:@""]) {
+            [self.zipcodeAlertView show];
+        }
+        else { // use the zip code
+            NSString *zipcodeString = [alertView textFieldAtIndex:0].text;
+            CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+            [geocoder geocodeAddressString:zipcodeString completionHandler:^(NSArray* placemarks, NSError* error){
+                if (placemarks) { // found a place
+                    CLPlacemark *placemark = placemarks[0];
+                    PFGeoPoint *userLocation = [PFGeoPoint geoPointWithLatitude:placemark.location.coordinate.latitude longitude:placemark.location.coordinate.longitude]; // create the geopoint through parse
+                    [PFUser currentUser][@"location"] = userLocation;
+                    [[PFUser currentUser] saveInBackground];
+                    // TODO: another alert view to confirm the right place?
+                }
+                // TODO: handle if nothing found
+            }];
+        }
+    }
     
 }
 

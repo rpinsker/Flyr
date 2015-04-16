@@ -218,7 +218,7 @@
     user.email = self.emailTextField.text;
     
     user[@"radius"] = [NSNumber numberWithDouble:10.0];
-    //user[@"setUpDone"] = @NO;
+    user[@"setUpDone"] = @NO;
     
     [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         if (!error) {
