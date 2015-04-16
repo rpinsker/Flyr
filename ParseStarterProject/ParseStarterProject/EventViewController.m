@@ -21,7 +21,7 @@
 #define HEIGHT_EDGE_INSENT 23
 
 
-@interface EventViewController () <UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate>
+@interface EventViewController () <UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
 @property (nonatomic, strong) UIScrollView *sv;
 @property (nonatomic) NSInteger numEventsToShow;
@@ -29,6 +29,7 @@
 @property (nonatomic, strong) NSArray *eventsToShow;
 @property (nonatomic, strong) UIAlertView *locationAlertView;
 @property (nonatomic, strong) UIAlertView *zipcodeAlertView;
+@property (nonatomic, strong) CLLocationManager *locationManager;
 
 @end
 
@@ -71,6 +72,7 @@
     if ([[PFUser currentUser][@"setUpDone"] isEqual:@NO]) {
         [self setUpUser];
     }
+
     
     CGRect mainScreenBounds = [UIScreen mainScreen].bounds;
     
@@ -102,32 +104,9 @@
     
     [self.view addSubview:self.tableView];
     
-    /* TODO: PULL EVENTS IN THE RIGHT PLACE WITH THE RIGHT START TIME */
-    NSDate *rightNow = [NSDate date];
-    PFQuery *eventQuery = [PFQuery queryWithClassName:@"Event"];
-    // TODO: add in right geopoint area
-    [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
-    [eventQuery whereKey:@"endTime" greaterThan:rightNow];
-    eventQuery.limit = 4;
-    [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            // The find succeeded.
-            NSLog(@"Successfully retrieved %lu events.", (unsigned long)objects.count);
-            self.numEventsToShow = objects.count;
-            self.eventsToShow = objects;
-            [self.tableView reloadData];
-            if ([objects count] == 0) {
-                self.tableView.hidden = YES;
-            }
-            else {
-                self.tableView.hidden = NO;
-            }
-        } else {
-            // Log details of the failure
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
-        }
-    }];
-    
+    if ([[PFUser currentUser][@"setUpDone"] isEqual:@YES]) {
+        [self pullEvents];
+    }
     
     /* USING SCROLL VIEW */
     //    /* initialize scrollView */
@@ -184,6 +163,37 @@
     
 }
 
+- (void) pullEvents
+{
+    /* TODO: PULL EVENTS IN THE RIGHT PLACE WITH THE RIGHT START TIME */
+    NSDate *rightNow = [NSDate date];
+    PFGeoPoint *usersLocation = [PFUser currentUser][@"location"];
+    NSNumber *usersRadius = [PFUser currentUser][@"radius"];
+    PFQuery *eventQuery = [PFQuery queryWithClassName:@"Event"];
+    [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
+    [eventQuery whereKey:@"endTime" greaterThan:rightNow];
+    [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
+    eventQuery.limit = 4;
+    [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            // The find succeeded.
+            NSLog(@"Successfully retrieved %lu events.", (unsigned long)objects.count);
+            self.numEventsToShow = objects.count;
+            self.eventsToShow = objects;
+            [self.tableView reloadData];
+            if ([objects count] == 0) {
+                self.tableView.hidden = YES;
+            }
+            else {
+                self.tableView.hidden = NO;
+            }
+        } else {
+            // Log details of the failure
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+        }
+    }];
+}
+
 # pragma mark - alert view for location
 
 - (void) setUpUser
@@ -207,10 +217,13 @@
             }
             [self.zipcodeAlertView show];
         }
+        else { // ask for permission for current location
+            [self getCurrentLocation];
+        }
     }
     else if ([alertView isEqual:self.zipcodeAlertView]) {
-        if (buttonIndex == 0) { // try to get permission for location
-            
+        if (buttonIndex == 0) { // ask for permission for current location
+            [self getCurrentLocation];
         }
         else if ([[alertView textFieldAtIndex:0].text isEqualToString:@""]) {
             [self.zipcodeAlertView show];
@@ -223,7 +236,11 @@
                     CLPlacemark *placemark = placemarks[0];
                     PFGeoPoint *userLocation = [PFGeoPoint geoPointWithLatitude:placemark.location.coordinate.latitude longitude:placemark.location.coordinate.longitude]; // create the geopoint through parse
                     [PFUser currentUser][@"location"] = userLocation;
-                    [[PFUser currentUser] saveInBackground];
+                    [PFUser currentUser][@"setUpDone"] = @YES;
+                    [[PFUser currentUser] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (succeeded)
+                            [self pullEvents];
+                    }];
                     // TODO: another alert view to confirm the right place?
                 }
                 // TODO: handle if nothing found
@@ -231,6 +248,48 @@
         }
     }
     
+}
+
+# pragma mark - location
+
+- (void) getCurrentLocation
+{
+    if (!self.locationManager) {
+        self.locationManager = [[CLLocationManager alloc] init];
+        self.locationManager.delegate = self;
+    }
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined)
+        [self.locationManager requestWhenInUseAuthorization];
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) {
+        [PFGeoPoint geoPointForCurrentLocationInBackground:^(PFGeoPoint *geoPoint, NSError *error) {
+            if (!error) {
+                [PFUser currentUser][@"location"] = geoPoint;
+                [PFUser currentUser][@"setUpDone"] = @YES;
+                [[PFUser currentUser] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    if (succeeded)
+                        [self pullEvents];
+                }];
+            }
+        }];
+    }
+}
+
+- (void) locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status
+{
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) {
+        [PFGeoPoint geoPointForCurrentLocationInBackground:^(PFGeoPoint *geoPoint, NSError *error) {
+            if (!error) {
+                [PFUser currentUser][@"location"] = geoPoint;
+                [PFUser currentUser][@"setUpDone"] = @YES;
+                [[PFUser currentUser] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    if (succeeded) {
+                        [self pullEvents];
+                    }
+                }];
+            }
+        }];
+    }
+    // TODO: make user enter a zipcode if they take away authorization
 }
 
 -(IBAction)handleRefresh:(id)sender
