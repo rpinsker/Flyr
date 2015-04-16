@@ -175,6 +175,7 @@
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
+    [eventQuery orderByAscending:@"endTime"];
     eventQuery.limit = 2;
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
@@ -304,6 +305,8 @@
     PFGeoPoint *usersLocation = [PFUser currentUser][@"location"];
     NSNumber *usersRadius = [PFUser currentUser][@"radius"];
     PFQuery *eventQuery = [PFQuery queryWithClassName:@"Event"];
+    eventQuery.limit = 4;
+    eventQuery.skip = [self.eventsToShow count];
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
     [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
@@ -312,7 +315,7 @@
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
         [eventItemsMut addObjectsFromArray:items];
         if ([items count] == 0) {
-            self.tableView.hidden = YES;
+            //self.tableView.hidden = YES;
             //                    self.refreshButton.hidden = NO;
             //                    self.refreshButton.enabled = YES;
             //                    [self.refreshButton setTitle:@"Refresh" forState:UIControlStateNormal];
@@ -320,12 +323,12 @@
         }
         else{
             self.tableView.hidden = NO;
+            self.eventsToShow = [NSArray arrayWithArray:eventItemsMut];
+            [self.tableView reloadData];
+            [(UIRefreshControl *)sender endRefreshing];
             //                    self.refreshButton.hidden = YES;
             //                    self.refreshButton.enabled = NO;
         }
-        self.eventsToShow = [NSArray arrayWithArray:eventItemsMut];
-        [self.tableView reloadData];
-        [(UIRefreshControl *)sender endRefreshing];
     }];
     //    }
     //    else { // if no internet, end the refresh control

@@ -8,6 +8,7 @@
 
 #import "EventDetailViewController.h"
 #import <MapKit/MapKit.h>
+#import <Parse/Parse.h>
 
 
 #define FONT_STRING @"AvenirNext-Medium"
@@ -53,12 +54,32 @@
             CLPlacemark *placemark = placemarks[0];
             MKPlacemark *mkplacemark = [[MKPlacemark alloc] initWithPlacemark:placemark];
             [map addAnnotation:mkplacemark];
-            MKCoordinateRegion region;
-            region.center = mkplacemark.coordinate;
-            region.span = MKCoordinateSpanMake(.005, .005);
-            map.region = region;
+            //MKCoordinateRegion region;
+            //region.center = mkplacemark.coordinate;
+            //region.span = MKCoordinateSpanMake(1, 1);
+            
+            if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) { // show their location on the map
+                map.showsUserLocation = YES;
+                CLLocationManager *manager = [[CLLocationManager alloc] init];
+                CLLocation *loc = [manager location];
+                
+                NSLog(@"lat: %f",(double)mkplacemark.coordinate.latitude);
+                NSLog(@"lat: %f",(double)loc.coordinate.latitude);
+                double deltaX = fabs((double)mkplacemark.coordinate.latitude - (double)loc.coordinate.latitude);
+                double deltaY = fabs((double)mkplacemark.coordinate.longitude - (double)loc.coordinate.longitude);
+                
+                MKCoordinateSpan span = MKCoordinateSpanMake(2.3*deltaX, 2.3*deltaY);
+                map.region = MKCoordinateRegionMake(mkplacemark.coordinate, span);
+            }
+            
+           // [map setVisibleMapRect:MKMapRectMake(, , , )];
+            
+           // [self.mapView mapRectThatFits:self.mapView.visibleMapRect edgePadding:UIEdgeInsetsMake(0, offset, 0, offset)];
+            
         }
     }];
+    
+
     
     [self.view addSubview:map];
     
