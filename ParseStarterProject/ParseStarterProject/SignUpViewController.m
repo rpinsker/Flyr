@@ -311,6 +311,7 @@
             NSLog(@"%@",errorString);
             self.errorLabel.text = [NSString stringWithFormat:@"Parse Error: \n%@", errorString];
             self.errorLabel.numberOfLines = 2;
+            [self.errorLabel sizeToFit];
             self.errorLabel.hidden = NO;
         }
     }];
