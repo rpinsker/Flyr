@@ -63,6 +63,7 @@
     self.addressStringTextField.font = [UIFont fontWithName:FONT_STRING size:17];
     placeholderText = [[NSAttributedString alloc]initWithString:@"address description" attributes:@{NSForegroundColorAttributeName : [UIColor lightGrayColor]}];
     self.addressStringTextField.attributedPlaceholder = placeholderText;
+    self.addressStringTextField.autocapitalizationType = UITextAutocapitalizationTypeWords;
     [self.view addSubview:self.addressStringTextField];
 
     // set up date pickers

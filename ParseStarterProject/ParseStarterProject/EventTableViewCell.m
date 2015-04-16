@@ -11,6 +11,10 @@
 #define TITLE_LABEL_HEIGHT 30
 #define HEIGHT_EDGE_INSET 23
 #define CAPTION_TEXT_VIEW_HEIGHT 200 // if you change this, change height of options table view height in shareViewController
+#define FONT_STRING @"AvenirNext-Medium"
+#define FONT_CAPTION_STRING_SIZE 20
+#define FONT_TITLE_STRING_SIZE 20
+
 
 
 @interface EventTableViewCell ()
@@ -40,6 +44,7 @@
         self.eventTitleLabel.backgroundColor = [UIColor colorWithWhite:.2 alpha:.7];
         self.eventTitleLabel.textAlignment = NSTextAlignmentCenter;
         self.eventTitleLabel.textColor = [UIColor whiteColor];
+        self.eventTitleLabel.font = [UIFont fontWithName:FONT_STRING size:FONT_TITLE_STRING_SIZE];
         [self addSubview:self.eventTitleLabel];
         
         // caption text view set up
@@ -47,6 +52,7 @@
         self.eventCaptionTextView.backgroundColor = [UIColor colorWithWhite:.2 alpha:.7];
         self.eventCaptionTextView.textColor = [UIColor whiteColor];
         self.eventCaptionTextView.userInteractionEnabled = NO;
+        self.eventCaptionTextView.font = [UIFont fontWithName:FONT_STRING size:FONT_CAPTION_STRING_SIZE];
         [self addSubview:self.eventCaptionTextView];
         
 //        // gesture recognizers set up

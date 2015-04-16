@@ -15,7 +15,7 @@
 #import <Parse/Parse.h>
 
 #define FONT_STRING @"AvenirNext-Medium"
-#define FONT_CAPTION_STRING_SIZE 15
+#define FONT_CAPTION_STRING_SIZE 25
 #define FONT_NAV_BAR_STRING_SIZE 45
 #define WIDTH_EDGE_INSET 0
 #define HEIGHT_EDGE_INSENT 23
@@ -296,12 +296,13 @@
 {
     //    if ([[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable) { // only query if internet is reachable
     NSDate *rightNow = [NSDate date];
+    PFGeoPoint *usersLocation = [PFUser currentUser][@"location"];
+    NSNumber *usersRadius = [PFUser currentUser][@"radius"];
     PFQuery *eventQuery = [PFQuery queryWithClassName:@"Event"];
-    // TODO: add in right geopoint area
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
-    // NSMutableArray *followingUsers = [NSMutableArray array];
-    //Create mutable array to add items for news feed
+    [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
+
     NSMutableArray *eventItemsMut = [NSMutableArray array];
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
         [eventItemsMut addObjectsFromArray:items];
@@ -375,11 +376,13 @@
 {
     //    if ([[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable) { // only query if internet is reachable
     NSDate *rightNow = [NSDate date];
+    PFGeoPoint *usersLocation = [PFUser currentUser][@"location"];
+    NSNumber *usersRadius = [PFUser currentUser][@"radius"];
     PFQuery *eventQuery = [PFQuery queryWithClassName:@"Event"];
-    // TODO: add in right geopoint area
     // TODO: order by distance
     [eventQuery whereKey:@"startTime" lessThanOrEqualTo:rightNow];
     [eventQuery whereKey:@"endTime" greaterThan:rightNow];
+    [eventQuery whereKey:@"location" nearGeoPoint:usersLocation withinMiles:[usersRadius doubleValue]];
     eventQuery.skip = [self.eventsToShow count];
     eventQuery.limit = 5;
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
