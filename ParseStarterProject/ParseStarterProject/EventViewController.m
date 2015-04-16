@@ -13,6 +13,7 @@
 #import "MoreViewController.h"
 #import <MapKit/MapKit.h>
 #import <Parse/Parse.h>
+#import "ErrorHandlingController.h"
 
 #define FONT_STRING @"AvenirNext-Medium"
 #define FONT_CAPTION_STRING_SIZE 25
@@ -191,6 +192,7 @@
         } else {
             // Log details of the failure
             NSLog(@"Error: %@ %@", error, [error userInfo]);
+            [ErrorHandlingController handleParseError:error];
         }
     }];
 }
@@ -269,6 +271,8 @@
                 [[PFUser currentUser] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                     if (succeeded)
                         [self pullEvents];
+                    if (error)
+                        [ErrorHandlingController handleParseError:error];
                 }];
             }
         }];

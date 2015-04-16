@@ -35,7 +35,8 @@
     //
     // Uncomment and fill in with your Parse credentials:
     [Parse setApplicationId:@"jNV7XZc1cnakEeM6gpFcXbM0Iw3eRvPMK2iXUvUU"
-                  clientKey:@"1fQbBxiZVC8m6T3bmp0XCEUBRKug4R86RndNZIts"];    //
+                  clientKey:@"1fQbBxiZVC8m6T3bmp0XCEUBRKug4R86RndNZIts"];
+    [PFUser enableRevocableSessionInBackground]; //
     // If you are using Facebook, uncomment and add your FacebookAppID to your bundle's plist as
     // described here: https://developers.facebook.com/docs/getting-started/facebook-sdk-for-ios/
     // [PFFacebookUtils initializeFacebook];

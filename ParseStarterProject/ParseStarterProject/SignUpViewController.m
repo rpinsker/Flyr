@@ -222,8 +222,10 @@
     
     [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         if (!error) {
-            
-            [self.presentingViewController dismissViewControllerAnimated:NO completion:NULL];
+            [PFUser logInWithUsernameInBackground:self.usernameTextField.text password:self.passwordTextField.text block:^(PFUser *user, NSError *error) {
+                [self.presentingViewController dismissViewControllerAnimated:NO completion:NULL];
+            }];
+
         } else {
             [PFUser logOut];
             NSString *errorString = [error userInfo][@"error"];
