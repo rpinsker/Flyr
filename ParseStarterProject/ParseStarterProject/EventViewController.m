@@ -398,10 +398,15 @@
     
     
     PFFile *imageFile = event[@"image"];
-    [imageFile getDataInBackgroundWithBlock:^(NSData *imageData, NSError *error) {
-        UIImage *image = [UIImage imageWithData:imageData];
-        cell.image = image;
-    }];
+    if (imageFile) {
+        [imageFile getDataInBackgroundWithBlock:^(NSData *imageData, NSError *error) {
+            UIImage *image = [UIImage imageWithData:imageData];
+            cell.image = image;
+        }];
+    }
+    else {
+        cell.image = nil;
+    }
     
     return cell;
 }
