@@ -10,9 +10,9 @@
 #import "EventViewController.h"
 #define TITLE_LABEL_HEIGHT 30
 #define HEIGHT_EDGE_INSET 23
-#define CAPTION_TEXT_VIEW_HEIGHT 200 // if you change this, change height of options table view height in shareViewController
+#define CAPTION_TEXT_VIEW_HEIGHT 100 // if you change this, change height of options table view height in shareViewController
 #define FONT_STRING @"AvenirNext-Medium"
-#define FONT_CAPTION_STRING_SIZE 20
+#define FONT_CAPTION_STRING_SIZE 15
 #define FONT_TITLE_STRING_SIZE 20
 
 
@@ -35,13 +35,13 @@
         
         // image view set up
         self.eventImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
-        self.eventImageView.layer.borderWidth = 10.0;
-        self.eventImageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
+        //self.eventImageView.layer.borderWidth = 10.0;
+        //self.eventImageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
         [self addSubview:self.eventImageView];
         
         // title label set up
         self.eventTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.frame.size.height - CAPTION_TEXT_VIEW_HEIGHT - TITLE_LABEL_HEIGHT, self.frame.size.width, TITLE_LABEL_HEIGHT)];
-        self.eventTitleLabel.backgroundColor = [UIColor colorWithWhite:.2 alpha:.7];
+        self.eventTitleLabel.backgroundColor = [UIColor colorWithRed:.89 green:.39 blue:.39 alpha:.8];
         self.eventTitleLabel.textAlignment = NSTextAlignmentCenter;
         self.eventTitleLabel.textColor = [UIColor whiteColor];
         self.eventTitleLabel.font = [UIFont fontWithName:FONT_STRING size:FONT_TITLE_STRING_SIZE];
@@ -49,7 +49,7 @@
         
         // caption text view set up
         self.eventCaptionTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - CAPTION_TEXT_VIEW_HEIGHT, self.frame.size.width, CAPTION_TEXT_VIEW_HEIGHT)];
-        self.eventCaptionTextView.backgroundColor = [UIColor colorWithWhite:.2 alpha:.7];
+        self.eventCaptionTextView.backgroundColor = [UIColor colorWithRed:.89 green:.39 blue:.39 alpha:.8];
         self.eventCaptionTextView.textColor = [UIColor whiteColor];
         self.eventCaptionTextView.userInteractionEnabled = NO;
         self.eventCaptionTextView.font = [UIFont fontWithName:FONT_STRING size:FONT_CAPTION_STRING_SIZE];

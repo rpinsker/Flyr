@@ -48,7 +48,7 @@
     self.navigationItem.hidesBackButton = YES;
     //set up navigation bar
     self.navigationItem.title = @"Event Feed";
-    self.navigationController.navigationBar.barTintColor = [UIColor colorWithWhite:.05 alpha:1];
+    self.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:.89 green:.39 blue:.39 alpha:.8];
     self.navigationController.navigationBar.alpha = .8;
     self.navigationController.navigationBar.titleTextAttributes = @{FONT_STRING : NSFontAttributeName,
                                                                     NSForegroundColorAttributeName : [UIColor whiteColor],
@@ -72,7 +72,7 @@
     
     [super viewDidLoad];
     
-    /* hard code a bunch of events
+    /* hard code a bunch of events 
     for (int i = 0; i < 100; i++) {
         PFObject *newEvent = [PFObject objectWithClassName:@"Event"];
         newEvent[@"eventName"] = [NSString stringWithFormat:@"event %d",i];
@@ -196,6 +196,7 @@
 
 - (void) pullEvents
 {
+    self.lastPullOfEvents = [NSDate date];
     /* TODO: PULL EVENTS IN THE RIGHT PLACE WITH THE RIGHT START TIME */
     NSDate *rightNow = [NSDate date];
     PFGeoPoint *usersLocation = [PFUser currentUser][@"location"];

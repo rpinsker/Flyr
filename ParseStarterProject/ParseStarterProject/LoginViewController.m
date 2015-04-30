@@ -34,7 +34,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-/* FOR MAKING TEST EVENTS
+/* FOR MAKING TEST EVENTS 
     // make events
     for (int i = 0; i < 9; i++) {
         PFObject *event = [PFObject objectWithClassName:@"Event"];
@@ -56,11 +56,11 @@
         dateComponents.hour = i+12+2;
         NSDate *endDate = [gregorian dateFromComponents:dateComponents];
         event[@"endTime"] = endDate;
-        event[@"stringLocation"] = @"1341 White Oak Way San Carlos, CA 94070";
+        event[@"stringLocation"] = @"1003 E 61st street Chicago IL, 60637";
         [event save];
         
         CLGeocoder *geocoder = [[CLGeocoder alloc] init];
-        [geocoder geocodeAddressString:@"1341 White Oak Way San Carlos, CA 94070" completionHandler:^(NSArray *placemarks, NSError *error) {
+        [geocoder geocodeAddressString:@"1003 E 61st street chicago IL, 60637" completionHandler:^(NSArray *placemarks, NSError *error) {
             if (placemarks) {
                 CLPlacemark *placemark = placemarks[0];
                 PFGeoPoint *geopoint = [PFGeoPoint geoPointWithLocation:placemark.location];
@@ -70,13 +70,14 @@
         }];
         
     }
-  */  
+  
+   */
 
     self.view = [[UIControl alloc] initWithFrame:self.view.frame];
     [(UIControl *)(self.view) addTarget:self
                                  action:@selector(backgroundTapped)
                        forControlEvents:UIControlEventTouchUpInside];
-    self.view.backgroundColor = [UIColor darkGrayColor];
+    self.view.backgroundColor = [UIColor colorWithRed:.89 green:.39 blue:.39 alpha:1.0];
     
     // text field location variables
     CGRect viewFrame = self.view.frame;
@@ -141,12 +142,12 @@
     [self.view addSubview:loginButton];
     
     // Signup button
-    UIButton *signupButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth/2, textFieldHeight)];
-    signupButton.center = CGPointMake(viewFrame.size.width / 2, self.view.frame.size.height - 2*textFieldHeight);
-    signupButton.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
+    UIButton *signupButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 2*textFieldHeight)];
+    signupButton.center = CGPointMake(viewFrame.size.width / 2, self.view.frame.size.height - textFieldHeight);
+    signupButton.backgroundColor = [UIColor colorWithRed:.933 green:1.0 blue:.42 alpha:1.0];
     signupButton.layer.cornerRadius = 10.0;
     [signupButton setTitle:@"sign up" forState:UIControlStateNormal];
-    signupButton.titleLabel.textColor = [UIColor whiteColor];
+    signupButton.titleLabel.textColor = [UIColor darkGrayColor];
     signupButton.titleLabel.textAlignment = NSTextAlignmentCenter;
     signupButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
     

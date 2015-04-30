@@ -43,7 +43,7 @@
     [self.view addGestureRecognizer:swipeRight];
     
     //set up mapView
-    MKMapView *map = [[MKMapView alloc] initWithFrame:CGRectMake(0,0,mainScreenBounds.size.width, mainScreenBounds.size.height/2)];
+    MKMapView *map = [[MKMapView alloc] initWithFrame:CGRectMake(0,0,mainScreenBounds.size.width, mainScreenBounds.size.height)];
     map.zoomEnabled = YES;
     map.scrollEnabled = NO;
     
@@ -97,7 +97,7 @@
     detailTextView.textColor = [UIColor whiteColor];
     detailTextView.editable = NO;
     
-    [self.view addSubview:detailTextView];
+    //[self.view addSubview:detailTextView];
     
     // make buttons
     self.GoButton = [[UIButton alloc] initWithFrame:CGRectMake(0,mainScreenBounds.size.height - BUTTON_HEIGHT, mainScreenBounds.size.width/2, BUTTON_HEIGHT)];
@@ -164,6 +164,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
     
 }
 

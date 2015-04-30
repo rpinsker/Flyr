@@ -20,7 +20,7 @@
 
 #define NUM_CELLS 3
 #define LOGOUT 2
-#define CREATE_EVENT 1
+#define CREATE_EVENT 11
 #define SETTINGS 0
 #define FONT_STRING @"AvenirNext-Medium"
 
@@ -70,7 +70,7 @@
     else if (indexPath.row == LOGOUT)
         [cell.textLabel setText:@"Logout"];
     
-    cell.backgroundColor = [UIColor colorWithWhite:.1 alpha:.5];
+    cell.backgroundColor = [UIColor colorWithRed:.086 green:.701 blue:.34 alpha:.8];
     cell.textLabel.textColor = [UIColor whiteColor];
     cell.textLabel.font = [UIFont fontWithName:FONT_STRING size:20.0];
     

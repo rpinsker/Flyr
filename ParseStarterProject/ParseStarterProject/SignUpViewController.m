@@ -43,7 +43,7 @@
     [(UIControl *)(self.view) addTarget:self
                                  action:@selector(backgroundTapped)
                        forControlEvents:UIControlEventTouchUpInside];
-    self.view.backgroundColor = [UIColor darkGrayColor];
+    self.view.backgroundColor = [UIColor colorWithRed:.89 green:.39 blue:.39 alpha:1.0];
     
     // set up scroll view
     self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];

@@ -51,8 +51,8 @@
     if (!self.imageView) {
         self.imageView = [[UIImageView alloc] init];
         self.imageView.frame = CGRectMake(0, statusBarHeight + 10, mainBounds.size.width, mainBounds.size.height - (statusBarHeight + 10));
-        self.imageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
-        self.imageView.layer.borderWidth = 10.0;
+        //self.imageView.layer.borderColor = [[UIColor darkGrayColor] CGColor];
+        //self.imageView.layer.borderWidth = 10.0;
         [self.view addSubview:self.imageView ];
         [self.view sendSubviewToBack:self.imageView];
     }
@@ -88,7 +88,7 @@
     CGRect mainBounds = [UIScreen mainScreen].bounds;
     
     //set up table view
-    int optionsTableViewHeight = 200; // if you change this, change caption height in EventTableViewCell
+    int optionsTableViewHeight = 100; // if you change this, change caption height in EventTableViewCell
     UITableView *optionsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, mainBounds.size.height - optionsTableViewHeight, mainBounds.size.width, optionsTableViewHeight)
                                                                  style:UITableViewStylePlain];
     [optionsTableView registerClass:[UITableViewCell class]
@@ -110,7 +110,7 @@
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UITableViewCell"
                                                             forIndexPath:indexPath];
-    cell.backgroundColor = [UIColor colorWithWhite:.2 alpha:.7];
+    cell.backgroundColor = [UIColor colorWithRed:.89 green:.39 blue:.39 alpha:.8];
     switch (indexPath.row) {
         case TEXT:
             cell.textLabel.text = @"TEXT";
