@@ -258,7 +258,7 @@
     else {
         imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     }
-    imagePicker.allowsEditing = YES;
+    imagePicker.allowsEditing = NO;
     imagePicker.delegate = self;
     self.imagePicker = imagePicker;
     
@@ -290,7 +290,7 @@
 - (void) imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     // get the image
-    UIImage *image = info[UIImagePickerControllerEditedImage];
+    UIImage *image = info[UIImagePickerControllerOriginalImage];
     
     self.imageView.image = image;
     
