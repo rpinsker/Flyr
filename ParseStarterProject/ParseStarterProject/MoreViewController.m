@@ -20,7 +20,7 @@
 
 #define NUM_CELLS 3
 #define LOGOUT 2
-#define CREATE_EVENT 11
+#define CREATE_EVENT 1
 #define SETTINGS 0
 #define FONT_STRING @"AvenirNext-Medium"
 

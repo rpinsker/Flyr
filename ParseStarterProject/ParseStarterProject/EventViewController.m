@@ -136,7 +136,26 @@
     [self.view addSubview:self.tableView];
     
     if ([[PFUser currentUser][@"setUpDone"] isEqual:@YES]) {
-        [self pullEvents];
+        //[self pullEvents];
+        if (!self.locationManager) {
+            self.locationManager = [[CLLocationManager alloc] init];
+            self.locationManager.delegate = self;
+        }
+//        if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined)
+//        [self.locationManager requestWhenInUseAuthorization];
+        if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) {
+            [PFGeoPoint geoPointForCurrentLocationInBackground:^(PFGeoPoint *geoPoint, NSError *error) {
+                if (!error) {
+                    [PFUser currentUser][@"location"] = geoPoint;
+                    [[PFUser currentUser] saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (succeeded)
+                            [self pullEvents];
+                        if (error)
+                            [ErrorHandlingController handleParseError:error];
+                    }];
+                }
+            }];
+        }
     }
     
     /* USING SCROLL VIEW */
