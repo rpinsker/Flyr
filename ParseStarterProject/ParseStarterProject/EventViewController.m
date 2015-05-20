@@ -42,6 +42,10 @@
 {
     [super viewWillAppear:animated];
     
+    if (!self.lastPullOfEvents) {
+        self.lastPullOfEvents = [NSDate dateWithTimeIntervalSinceNow:-60];
+    }
+    
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
     
     self.navigationController.navigationBarHidden = NO;
@@ -73,13 +77,13 @@
     [super viewDidLoad];
     
     /* hard code a bunch of events 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 25; i++) {
         PFObject *newEvent = [PFObject objectWithClassName:@"Event"];
         newEvent[@"eventName"] = [NSString stringWithFormat:@"event %d",i];
         newEvent[@"startTime"] = [NSDate dateWithTimeIntervalSinceNow:-3600];
         newEvent[@"endTime"] = [NSDate dateWithTimeIntervalSinceNow:3600 * 7 + 60*i];
         newEvent[@"stringLocation"] = @"1003 E 61st Street Chicago, IL 60637";
-        newEvent[@"eventDescription"] = @"descriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\n";
+       // newEvent[@"eventDescription"] = @"descriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\ndescriptiondescription descriptiondescription descriptiondescription\n";
         
         [newEvent saveInBackground];
         
