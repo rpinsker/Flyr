@@ -30,6 +30,7 @@
 @property (nonatomic, strong) NSMutableArray *recipients;
 @property (nonatomic, strong) NSMutableArray *selectedIndexPaths;
 @property (nonatomic, strong) UIButton *sendButton;
+@property (nonatomic, strong) UIView *footerView;
 
 @end
 
@@ -69,6 +70,9 @@
         [self.view sendSubviewToBack:self.imageView];
     }
     self.imageView.image = self.eventImage;
+    
+    // deselect all contacts
+    [self deselectAllContacts];
     
     
 }
@@ -122,16 +126,39 @@
     if (!self.selectedIndexPaths) {
         self.selectedIndexPaths = [[NSMutableArray alloc] init];
     }
-    if (!self.sendButton) {
+    if (!self.footerView) {
+        self.footerView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - (CONTACTS_TABLE_VIEW_CELL_HEIGHT / 1.8), self.view.frame.size.width, (CONTACTS_TABLE_VIEW_CELL_HEIGHT / 1.8))];
+        self.footerView.backgroundColor = [UIColor darkGrayColor];
+        self.footerView.alpha = .8;
+        [self.view addSubview:self.footerView];
+        
+        // send button
         self.sendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        self.sendButton.frame = CGRectMake(0, self.view.frame.size.height - (CONTACTS_TABLE_VIEW_CELL_HEIGHT / 1.8), self.view.frame.size.width, (CONTACTS_TABLE_VIEW_CELL_HEIGHT / 1.8));
-        self.sendButton.backgroundColor = [UIColor darkGrayColor];
-        self.sendButton.alpha = .8;
+        self.sendButton.frame = CGRectMake(self.footerView.frame.size.width / 2.0, 0, self.footerView.frame.size.width / 2.0, self.footerView.frame.size.height);
+        self.sendButton.backgroundColor = [UIColor colorWithRed:0
+                                                          green:.5
+                                                           blue:0
+                                                          alpha:.8];
         NSAttributedString *nextButtonTitle = [[NSAttributedString alloc] initWithString:@"Send" attributes:@{FONT_STRING : NSFontAttributeName, NSForegroundColorAttributeName : [UIColor whiteColor]}];
         [self.sendButton setAttributedTitle:nextButtonTitle forState:UIControlStateNormal];
         [self.sendButton addTarget:self action:@selector(sendPressed) forControlEvents:UIControlEventTouchUpInside];
         self.sendButton.enabled = YES;
-        [self.view addSubview:self.sendButton];
+        [self.footerView addSubview:self.sendButton];
+        
+        // deselect all button
+        UIButton *deselectAllButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        deselectAllButton.frame = CGRectMake(0, 0, self.footerView.frame.size.width / 2.0, self.footerView.frame.size.height);
+        deselectAllButton.backgroundColor = [UIColor colorWithRed:.5
+                                                            green:0
+                                                             blue:0
+                                                            alpha:.8];
+        NSAttributedString *deselectButtonTitle = [[NSAttributedString alloc] initWithString:@"Deselect All" attributes:@{FONT_STRING : NSFontAttributeName, NSForegroundColorAttributeName : [UIColor whiteColor]}];
+        [deselectAllButton setAttributedTitle:deselectButtonTitle forState:UIControlStateNormal];
+        [deselectAllButton addTarget:self action:@selector(deselectAllContacts) forControlEvents:UIControlEventTouchUpInside];
+        deselectAllButton.enabled = YES;
+        [self.footerView addSubview:deselectAllButton];
+        
+        
     }
     
     if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusAuthorized){
@@ -252,7 +279,7 @@
     }
     [self.view bringSubviewToFront:self.sendButton];
     if ([self.recipients count] == 0)
-        self.sendButton.hidden = YES;
+        self.footerView.hidden = YES;
 }
 
 - (void) putContactsInSections
@@ -329,12 +356,25 @@
     
 }
 
+- (void) deselectAllContacts
+{
+    if ([self.recipients count] != 0) {
+        for (NSIndexPath *indexPath in self.selectedIndexPaths) {
+            ContactTableViewCell *cell = (ContactTableViewCell *)[self.contactsTableView cellForRowAtIndexPath:indexPath];
+            cell.accessoryType = UITableViewCellAccessoryNone;
+        }
+        [self.recipients removeAllObjects];
+        [self.selectedIndexPaths removeAllObjects];
+        [self hideSendTextButton];
+    }
+}
+
 #pragma mark - Table View
 -(UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if ([tableView isEqual:self.contactsTableView]) {
         ContactTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ContactTableViewCell"
-                                                                forIndexPath:indexPath];
+                                                                     forIndexPath:indexPath];
         cell.tintColor = [UIColor whiteColor];
         
         if ([self.selectedIndexPaths containsObject:indexPath]) {
@@ -549,13 +589,13 @@
 
 - (void) showSendTextButton
 {
-    [self.view bringSubviewToFront:self.sendButton];
-    self.sendButton.hidden = NO;
+    [self.view bringSubviewToFront:self.footerView];
+    self.footerView.hidden = NO;
 }
 
 - (void) hideSendTextButton
 {
-    self.sendButton.hidden = YES;
+    self.footerView.hidden = YES;
 }
 
 - (void) sendPressed
