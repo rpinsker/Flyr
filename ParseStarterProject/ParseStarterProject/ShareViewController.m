@@ -27,6 +27,9 @@
 @property (nonatomic, strong) NSDictionary *contactsInSectionsDict;
 @property (nonatomic, strong) UITableView *contactsTableView;
 @property (nonatomic, strong) NSArray *alphabetArray;
+@property (nonatomic, strong) NSMutableArray *recipients;
+@property (nonatomic, strong) NSMutableArray *selectedIndexPaths;
+@property (nonatomic, strong) UIButton *sendButton;
 
 @end
 
@@ -74,6 +77,10 @@
 {
     [super viewDidLoad];
     
+//    UIColor *c = [UIColor colorWithWhite:(1.0/3.0) alpha:.8];
+//    [[UITableViewHeaderFooterView appearance] setTintColor:c];
+//    [[UITableViewHeaderFooterView appearance] setText]
+    
     //set up gesture recognizer to go back (which is actually going forward)
     UISwipeGestureRecognizer *swipeLeft = [[UISwipeGestureRecognizer alloc] initWithTarget:self
                                                                                     action:@selector(back)];
@@ -107,6 +114,24 @@
             NSArray *contacts = [[NSArray alloc] init];
             [self.contactsInSectionsDict setValue:contacts forKey:letter];
         }
+    }
+    
+    if (!self.recipients) {
+        self.recipients = [[NSMutableArray alloc] init];
+    }
+    if (!self.selectedIndexPaths) {
+        self.selectedIndexPaths = [[NSMutableArray alloc] init];
+    }
+    if (!self.sendButton) {
+        self.sendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        self.sendButton.frame = CGRectMake(0, self.view.frame.size.height - (CONTACTS_TABLE_VIEW_CELL_HEIGHT / 1.8), self.view.frame.size.width, (CONTACTS_TABLE_VIEW_CELL_HEIGHT / 1.8));
+        self.sendButton.backgroundColor = [UIColor darkGrayColor];
+        self.sendButton.alpha = .8;
+        NSAttributedString *nextButtonTitle = [[NSAttributedString alloc] initWithString:@"Send" attributes:@{FONT_STRING : NSFontAttributeName, NSForegroundColorAttributeName : [UIColor whiteColor]}];
+        [self.sendButton setAttributedTitle:nextButtonTitle forState:UIControlStateNormal];
+        [self.sendButton addTarget:self action:@selector(sendPressed) forControlEvents:UIControlEventTouchUpInside];
+        self.sendButton.enabled = YES;
+        [self.view addSubview:self.sendButton];
     }
     
     if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusAuthorized){
@@ -225,7 +250,9 @@
         optionsTableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
         [self.view addSubview:optionsTableView];
     }
-    
+    [self.view bringSubviewToFront:self.sendButton];
+    if ([self.recipients count] == 0)
+        self.sendButton.hidden = YES;
 }
 
 - (void) putContactsInSections
@@ -308,6 +335,14 @@
     if ([tableView isEqual:self.contactsTableView]) {
         ContactTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ContactTableViewCell"
                                                                 forIndexPath:indexPath];
+        cell.tintColor = [UIColor whiteColor];
+        
+        if ([self.selectedIndexPaths containsObject:indexPath]) {
+            [cell setAccessoryType:UITableViewCellAccessoryCheckmark];
+        }
+        else {
+            [cell setAccessoryType:UITableViewCellAccessoryNone];
+        }
         
         NSString *letter = self.alphabetArray[indexPath.section];
         NSArray *contacts = self.contactsInSectionsDict[letter];
@@ -412,6 +447,8 @@
 {
     if ([tableView isEqual:self.contactsTableView]) {
         ContactTableViewCell *cell = (ContactTableViewCell *)[tableView cellForRowAtIndexPath:indexPath];
+        
+        
         [tableView deselectRowAtIndexPath:indexPath animated:NO];
         NSArray *phoneNumbers = [cell getPhoneNumbersArray];
         NSArray *phoneNumberTypes = [cell getPhoneNumbersTypeArray];
@@ -419,7 +456,19 @@
         NSUInteger *numPhoneNumbers = [phoneNumbers count];
         if (numPhoneNumbers != 0) {
             if ((int)numPhoneNumbers == 1) {
-                [self sendTextToRecipients:phoneNumbers];
+                if ([self.selectedIndexPaths containsObject:indexPath]) { // already selected, deselect it
+                    [self.recipients removeObject:phoneNumbers[0]];
+                    if ([self.recipients count] == 0) { // now show the send button
+                        [self hideSendTextButton];
+                    }
+                }
+                else { // select it
+                    [self.recipients addObject:phoneNumbers[0]];
+                    if ([self.recipients count] == 1) { // now show the send button
+                        [self showSendTextButton];
+                    }
+                }
+                //[self sendTextToRecipients:phoneNumbers];
             }
             // TODO: potentially find a better system for choosing what number to send it to
             else {
@@ -427,11 +476,35 @@
                 for (int i = 0; i < [phoneNumbers count]; i++) {
                     if ([phoneNumberTypes[i] isEqualToString:(NSString*)kABPersonPhoneMobileLabel] || [phoneNumberTypes[i] isEqualToString:(NSString*)kABPersonPhoneIPhoneLabel]) {
                         foundANumber = YES;
-                        [self sendTextToRecipients:@[phoneNumbers[i]]];
+                        //[self sendTextToRecipients:@[phoneNumbers[i]]];
+                        if ([self.selectedIndexPaths containsObject:indexPath]) { // already selected, deselect it
+                            [self.recipients removeObject:phoneNumbers[i]];
+                            if ([self.recipients count] == 0) { // now hide the send button
+                                [self hideSendTextButton];
+                            }
+                        }
+                        else { // select it
+                            [self.recipients addObject:phoneNumbers[i]];
+                            if ([self.recipients count] == 1) { // now show the send button
+                                [self showSendTextButton];
+                            }
+                        }
                     }
                 }
                 if (!foundANumber) { // just send it to the first number in the list...
-                    [self sendTextToRecipients:@[phoneNumbers[0]]];
+                    if ([self.selectedIndexPaths containsObject:indexPath]) { // already selected, deselect it
+                        [self.recipients removeObject:phoneNumbers[0]];
+                        if ([self.recipients count] == 0) { // now show the send button
+                            [self hideSendTextButton];
+                        }
+                    }
+                    else { // select it
+                        [self.recipients addObject:phoneNumbers[0]];
+                        if ([self.recipients count] == 1) { // now show the send button
+                            [self showSendTextButton];
+                        }
+                    }
+                    //[self sendTextToRecipients:@[phoneNumbers[0]]];
                 }
             }
         }
@@ -439,7 +512,15 @@
             // TODO: set up email
         }
         
-        
+        if ([self.selectedIndexPaths containsObject:indexPath]) { // was already selected, deselect it
+            [cell setAccessoryType:UITableViewCellAccessoryNone];
+            [self.selectedIndexPaths removeObject:indexPath];
+        }
+        else { // select it
+            [cell setAccessoryType:UITableViewCellAccessoryCheckmark];
+            [self.selectedIndexPaths addObject:indexPath];
+            
+        }
         
         return;
     }
@@ -458,6 +539,29 @@
         default:
             break;
     }
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    UITableViewHeaderFooterView * headerview = (UITableViewHeaderFooterView *)view;
+    headerview.contentView.backgroundColor = [UIColor colorWithWhite:(1.0/3.0) alpha:.7];
+    headerview.textLabel.textColor = [UIColor whiteColor];
+}
+
+- (void) showSendTextButton
+{
+    [self.view bringSubviewToFront:self.sendButton];
+    self.sendButton.hidden = NO;
+}
+
+- (void) hideSendTextButton
+{
+    self.sendButton.hidden = YES;
+}
+
+- (void) sendPressed
+{
+    if (self.recipients && [self.recipients count] != 0)
+        [self sendTextToRecipients:self.recipients];
 }
 
 #pragma mark - Text
