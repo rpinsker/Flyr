@@ -320,17 +320,23 @@
         
         NSString *fullName;
         if (lastName && firstName) {
-            fullName = [NSString stringWithFormat:@"\t%@ %@",(__bridge NSString *)firstName,(__bridge NSString *)lastName];
+            fullName = [NSString stringWithFormat:@"\t\t%@ %@",(__bridge NSString *)firstName,(__bridge NSString *)lastName];
         }
         else if (lastName) { // just last name
-            fullName = [NSString stringWithFormat:@"\t%@",(__bridge NSString *)lastName];
+            fullName = [NSString stringWithFormat:@"\t\t%@",(__bridge NSString *)lastName];
         }
         else { // just first name
-            fullName = [NSString stringWithFormat:@"\t%@",(__bridge NSString *)firstName];
+            fullName = [NSString stringWithFormat:@"\t\t%@",(__bridge NSString *)firstName];
         }
         
         cell.name = fullName;
         
+        NSData  *imgData = (__bridge NSData *)ABPersonCopyImageData(ref);
+        UIImage  *img = [UIImage imageWithData:imgData];
+        if (img == nil) {
+            img = [UIImage imageNamed:@"facebook-default-no-profile-pic.jpg"];
+        }
+        cell.image = img;
         
         ABMultiValueRef phones = ABRecordCopyValue(ref, kABPersonPhoneProperty);
         CFIndex numPhoneNumbers = ABMultiValueGetCount(phones);

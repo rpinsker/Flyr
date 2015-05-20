@@ -38,6 +38,14 @@
         self.nameLabel.font = [UIFont fontWithName:FONT_STRING size:FONT_SIZE];
         [self addSubview:self.nameLabel];
         
+        int widthAndHeight = self.bounds.size.height/1.2;
+        self.imageViewForImage = [[UIImageView alloc] initWithFrame:CGRectMake(5, (CELL_HEIGHT - widthAndHeight) / 2.0 , widthAndHeight, widthAndHeight)];
+        self.imageViewForImage.backgroundColor = [UIColor whiteColor];
+        self.imageViewForImage.layer.cornerRadius = self.imageViewForImage.bounds.size.height / 2.0;
+        self.imageViewForImage.layer.masksToBounds = YES;
+        self.imageViewForImage.layer.borderWidth = 0;
+        [self addSubview:self.imageViewForImage];
+        
     }
     
     return self;
