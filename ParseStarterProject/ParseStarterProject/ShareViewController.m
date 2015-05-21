@@ -285,109 +285,137 @@
 
 - (void) putContactsInSections
 {
-    if (ABPersonGetSortOrdering() == kABPersonSortByFirstName) {
+    NSMutableDictionary *contactsDict = [[NSMutableDictionary alloc] init];
+    for (NSString *letter in self.alphabetArray) {
+        NSMutableArray *contacts = [[NSMutableArray alloc] init];
+        [contactsDict setValue:contacts forKey:letter];
+    }
+    
+    
         NSUInteger numContacts = [self.allContacts count];
-        NSUInteger currentLetterCounter = 0;
-        NSMutableArray *contactsForCurrentLetter = [[NSMutableArray alloc] init];
-        NSString *currentLetter;
         for (int i = 0; i < numContacts; i++) {
-            currentLetter = self.alphabetArray[currentLetterCounter];
             ABRecordRef ref = (__bridge ABRecordRef)(self.allContacts[i]);
-            CFStringRef firstName = ABRecordCopyValue(ref, kABPersonFirstNameProperty);
-            if (!firstName)
+            CFStringRef firstName;
+            if (ABPersonGetSortOrdering() == kABPersonSortByFirstName)
+                firstName = ABRecordCopyValue(ref, kABPersonFirstNameProperty);
+            if (!firstName || ABPersonGetSortOrdering() == kABPersonSortByLastName)
                 firstName = ABRecordCopyValue(ref, kABPersonLastNameProperty);
             NSString *firstNameLetter = (__bridge NSString *)firstName;
+            firstNameLetter = [firstNameLetter substringToIndex:1];
             NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
-            for (NSUInteger i = 0; i < [firstNameLetter length]; i++) {
-                if ([letters characterIsMember:[firstNameLetter characterAtIndex:i]]) {
-                    firstNameLetter = [NSString stringWithFormat:@"%C",[firstNameLetter characterAtIndex:i]];
-                }
-            }
-            if ([firstNameLetter isEqualToString:currentLetter] || [[firstNameLetter lowercaseString] isEqualToString:currentLetter] || [firstNameLetter isEqualToString:@"*"]) {
-                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
-            }
-            else { // new letter
-                [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
-                contactsForCurrentLetter = [[NSMutableArray alloc] init];
-                currentLetterCounter++;
-                while (![firstNameLetter isEqualToString:self.alphabetArray[currentLetterCounter]] && ![[firstNameLetter lowercaseString] isEqualToString:self.alphabetArray[currentLetterCounter]] && ![firstNameLetter isEqualToString:@"*"]) {
-                    currentLetterCounter++;
-                }
-                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
-                
-            }
+            if ([letters characterIsMember:[firstNameLetter characterAtIndex:0]] || [firstNameLetter isEqualToString:@"#"])
+                [contactsDict[[firstNameLetter lowercaseString]] addObject:(__bridge id)(ref)];
+            else
+                [contactsDict[@"#"] addObject:(__bridge id)(ref)];
+            
         }
-        [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
-    }
-    else { // sort by last name
-        NSUInteger numContacts = [self.allContacts count];
-        NSUInteger currentLetterCounter = 0;
-        NSMutableArray *contactsForCurrentLetter = [[NSMutableArray alloc] init];
-        NSString *currentLetter;
-        int i;
-        for (i = 0; i < numContacts; i++) {
-            currentLetter = self.alphabetArray[currentLetterCounter];
-            ABRecordRef ref = (__bridge ABRecordRef)(self.allContacts[i]);
-            CFStringRef lastName = ABRecordCopyValue(ref, kABPersonLastNameProperty);
-            if (!lastName)
-                lastName = ABRecordCopyValue(ref, kABPersonFirstNameProperty);
-            NSString *firstNameLetter = (__bridge NSString *)lastName;
-            NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
-            NSCharacterSet *digits = [NSCharacterSet characterSetWithCharactersInString:@".0123456789"];
-            for (NSUInteger i = 0; i < [firstNameLetter length]; i++) {
-                if ([letters characterIsMember:[firstNameLetter characterAtIndex:i]]) {
-                    firstNameLetter = [NSString stringWithFormat:@"%C",[firstNameLetter characterAtIndex:i]];
-                }
-                else if ([digits characterIsMember:[firstNameLetter characterAtIndex:i]]) {
-                    firstNameLetter = [NSString stringWithFormat:@"%C",[firstNameLetter characterAtIndex:i]];
-                }
-            }
-            if ([firstNameLetter isEqualToString:@"Ö"]) {
-                firstNameLetter = @"O";
-            }
-            if ([digits characterIsMember:[firstNameLetter characterAtIndex:0]] && [currentLetter isEqualToString:@"#"]) {
-                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
-            }
-            else if ([firstNameLetter isEqualToString:currentLetter] || [[firstNameLetter lowercaseString] isEqualToString:currentLetter] || [firstNameLetter isEqualToString:@"*"] || (!firstNameLetter) ) {
-                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
-            }
-            else { // new letter
-                [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
-                contactsForCurrentLetter = [[NSMutableArray alloc] init];
-                currentLetterCounter++;
-              //  if (currentLetterCounter == [self.alphabetArray count]) {
-              //      currentLetterCounter = 0;
-              //  }
-                NSCharacterSet *digits = [NSCharacterSet characterSetWithCharactersInString:@".0123456789"];
-                if ([digits characterIsMember:[firstNameLetter characterAtIndex:0]]) {
-                    currentLetterCounter = [self.alphabetArray count] - 1;
-                    currentLetter = self.alphabetArray[currentLetterCounter];
-                    break;
-                }
-                if ([firstNameLetter isEqualToString:@"."]) {
-                    currentLetterCounter = [self.alphabetArray count] - 1;
-                }
-                else {
-                    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
-                    while (![firstNameLetter isEqualToString:self.alphabetArray[currentLetterCounter]] && ![[firstNameLetter lowercaseString] isEqualToString:self.alphabetArray[currentLetterCounter]] && ![letters characterIsMember:firstNameLetter]) {
-                        currentLetterCounter++;
-                        //if (currentLetterCounter == [self.alphabetArray count]) {
-                        //    currentLetterCounter = 0;
-                        //}
-                    }
-                }
-                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
-                
-            }
-        }
-        if (i != numContacts) {
-            for (int j  = i; j < numContacts; j++) {
-                ABRecordRef ref = (__bridge ABRecordRef)(self.allContacts[j]);
-                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
-            }
-        }
-        [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
-    }
+    
+    self.contactsInSectionsDict = [contactsDict copy];
+    
+    
+//    if (ABPersonGetSortOrdering() == kABPersonSortByFirstName) {
+//        NSUInteger numContacts = [self.allContacts count];
+//        NSUInteger currentLetterCounter = 0;
+//        NSMutableArray *contactsForCurrentLetter = [[NSMutableArray alloc] init];
+//        NSString *currentLetter;
+//        for (int i = 0; i < numContacts; i++) {
+//            currentLetter = self.alphabetArray[currentLetterCounter];
+//            ABRecordRef ref = (__bridge ABRecordRef)(self.allContacts[i]);
+//            CFStringRef firstName = ABRecordCopyValue(ref, kABPersonFirstNameProperty);
+//            if (!firstName)
+//                firstName = ABRecordCopyValue(ref, kABPersonLastNameProperty);
+//            NSString *firstNameLetter = (__bridge NSString *)firstName;
+//            NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+//            for (NSUInteger i = 0; i < [firstNameLetter length]; i++) {
+//                if ([letters characterIsMember:[firstNameLetter characterAtIndex:i]]) {
+//                    firstNameLetter = [NSString stringWithFormat:@"%C",[firstNameLetter characterAtIndex:i]];
+//                }
+//            }
+//            if ([firstNameLetter isEqualToString:currentLetter] || [[firstNameLetter lowercaseString] isEqualToString:currentLetter] || [firstNameLetter isEqualToString:@"*"]) {
+//                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
+//            }
+//            else { // new letter
+//                [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
+//                contactsForCurrentLetter = [[NSMutableArray alloc] init];
+//                currentLetterCounter++;
+//                while (![firstNameLetter isEqualToString:self.alphabetArray[currentLetterCounter]] && ![[firstNameLetter lowercaseString] isEqualToString:self.alphabetArray[currentLetterCounter]] && ![firstNameLetter isEqualToString:@"*"]) {
+//                    currentLetterCounter++;
+//                }
+//                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
+//                
+//            }
+//        }
+//        [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
+//    }
+//    else { // sort by last name
+//        NSUInteger numContacts = [self.allContacts count];
+//        NSUInteger currentLetterCounter = 0;
+//        NSMutableArray *contactsForCurrentLetter = [[NSMutableArray alloc] init];
+//        NSString *currentLetter;
+//        int i;
+//        for (i = 0; i < numContacts; i++) {
+//            currentLetter = self.alphabetArray[currentLetterCounter];
+//            ABRecordRef ref = (__bridge ABRecordRef)(self.allContacts[i]);
+//            CFStringRef lastName = ABRecordCopyValue(ref, kABPersonLastNameProperty);
+//            if (!lastName)
+//                lastName = ABRecordCopyValue(ref, kABPersonFirstNameProperty);
+//            NSString *firstNameLetter = (__bridge NSString *)lastName;
+//            NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+//            NSCharacterSet *digits = [NSCharacterSet characterSetWithCharactersInString:@".0123456789"];
+//            for (NSUInteger i = 0; i < [firstNameLetter length]; i++) {
+//                if ([letters characterIsMember:[firstNameLetter characterAtIndex:i]]) {
+//                    firstNameLetter = [NSString stringWithFormat:@"%C",[firstNameLetter characterAtIndex:i]];
+//                }
+//                else if ([digits characterIsMember:[firstNameLetter characterAtIndex:i]]) {
+//                    firstNameLetter = [NSString stringWithFormat:@"%C",[firstNameLetter characterAtIndex:i]];
+//                }
+//            }
+//            if ([firstNameLetter isEqualToString:@"Ö"]) {
+//                firstNameLetter = @"O";
+//            }
+//            if ([digits characterIsMember:[firstNameLetter characterAtIndex:0]] && [currentLetter isEqualToString:@"#"]) {
+//                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
+//            }
+//            else if ([firstNameLetter isEqualToString:currentLetter] || [[firstNameLetter lowercaseString] isEqualToString:currentLetter] || [firstNameLetter isEqualToString:@"*"] || (!firstNameLetter) ) {
+//                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
+//            }
+//            else { // new letter
+//                [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
+//                contactsForCurrentLetter = [[NSMutableArray alloc] init];
+//                currentLetterCounter++;
+//              //  if (currentLetterCounter == [self.alphabetArray count]) {
+//              //      currentLetterCounter = 0;
+//              //  }
+//                NSCharacterSet *digits = [NSCharacterSet characterSetWithCharactersInString:@".0123456789"];
+//                if ([digits characterIsMember:[firstNameLetter characterAtIndex:0]]) {
+//                    currentLetterCounter = [self.alphabetArray count] - 1;
+//                    currentLetter = self.alphabetArray[currentLetterCounter];
+//                    break;
+//                }
+//                if ([firstNameLetter isEqualToString:@"."]) {
+//                    currentLetterCounter = [self.alphabetArray count] - 1;
+//                }
+//                else {
+//                    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+//                    while (![firstNameLetter isEqualToString:self.alphabetArray[currentLetterCounter]] && ![[firstNameLetter lowercaseString] isEqualToString:self.alphabetArray[currentLetterCounter]] && ![letters characterIsMember:firstNameLetter]) {
+//                        currentLetterCounter++;
+//                        //if (currentLetterCounter == [self.alphabetArray count]) {
+//                        //    currentLetterCounter = 0;
+//                        //}
+//                    }
+//                }
+//                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
+//                
+//            }
+//        }
+//        if (i != numContacts) {
+//            for (int j  = i; j < numContacts; j++) {
+//                ABRecordRef ref = (__bridge ABRecordRef)(self.allContacts[j]);
+//                [contactsForCurrentLetter addObject:(__bridge id)(ref)];
+//            }
+//        }
+//        [self.contactsInSectionsDict setValue:[contactsForCurrentLetter copy] forKey:currentLetter];
+//    }
     
 }
 
