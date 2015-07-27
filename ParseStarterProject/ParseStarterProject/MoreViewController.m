@@ -11,6 +11,8 @@
 #import "SettingsViewController.h"
 #import "CreateEventViewController.h"
 #import <Parse/Parse.h>
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
 
 @interface MoreViewController () <UITableViewDataSource, UITableViewDelegate>
 
@@ -91,6 +93,12 @@
     }
     else if (indexPath.row == LOGOUT) {
         // logout
+        if([FBSDKAccessToken currentAccessToken])
+        {
+            FBSDKLoginManager *login = [[FBSDKLoginManager alloc] init];
+            [login logOut];
+        }
+        
         [PFUser logOut];
         for (UIViewController *vc in self.navigationController.viewControllers)
         {

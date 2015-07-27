@@ -8,11 +8,14 @@
 
 #import "LoginViewController.h"
 #import <Parse/Parse.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+#import <ParseFacebookUtilsV4/PFFacebookUtils.h>
 #import "SignUpViewController.h"
 
 #import "ShareViewController.h"
 
-@interface LoginViewController ()
+@interface LoginViewController () <FBSDKLoginButtonDelegate>
 
 @property (strong, nonatomic) UITextField *usernameTextField;
 @property (strong, nonatomic) UITextField *passwordTextField;
@@ -21,6 +24,7 @@
 
 #define FONT_STRING @"AvenirNext-Medium"
 #define TITLE_FONT_STRING @"AvenirNext-Medium"
+#define PASSWORD_FB_LOGIN @"fblogin"
 
 @implementation LoginViewController
 
@@ -141,6 +145,22 @@
     
     [self.view addSubview:loginButton];
     
+    // FB Login button
+    UIButton *FBLoginButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, textFieldWidth/2, textFieldHeight)];
+    FBLoginButton.center = CGPointMake(viewFrame.size.width / 2, passwordTextFieldY + 4*textFieldHeight);
+    FBLoginButton.backgroundColor = [UIColor colorWithWhite:.1 alpha:.7];
+    FBLoginButton.layer.cornerRadius = 10.0;
+    [FBLoginButton setTitle:@"fb" forState:UIControlStateNormal];
+    FBLoginButton.titleLabel.textColor = [UIColor whiteColor];
+    FBLoginButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    FBLoginButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
+    
+    [FBLoginButton addTarget:self
+                    action:@selector(loginWithFacebook)
+          forControlEvents:UIControlEventTouchUpInside];
+    
+    [self.view addSubview:FBLoginButton];
+    
     // Signup button
     UIButton *signupButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 2*textFieldHeight)];
     signupButton.center = CGPointMake(viewFrame.size.width / 2, self.view.frame.size.height - textFieldHeight);
@@ -158,6 +178,15 @@
     [self.view addSubview:signupButton];
     
     
+//    // facebook login button
+//    FBSDKLoginButton *fbLoginButton = [[FBSDKLoginButton alloc] init];
+//    fbLoginButton.frame = CGRectMake(0, loginButton.frame.origin.y + 1.5*textFieldHeight, fbLoginButton.frame.size.width, fbLoginButton.frame.size.height);
+//    fbLoginButton.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2.0,fbLoginButton.frame.origin.y);
+//    fbLoginButton.readPermissions = @[@"public_profile", @"email", @"user_friends"];
+//    fbLoginButton.delegate = self;
+//    [self.view addSubview:fbLoginButton];
+    
+    
     // FLYR text
     UILabel *flyrLabel;
     if ([UIScreen mainScreen].bounds.size.height == 480) { // different for an iPhone 4
@@ -173,17 +202,23 @@
     flyrLabel.textAlignment = NSTextAlignmentCenter;
     flyrLabel.textColor = [UIColor whiteColor];
     [self.view addSubview:flyrLabel];
-    
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
-    PFUser *currentUser = [PFUser currentUser];
-    if (currentUser.username) {
+    [super viewDidAppear:animated];
+    if ([FBSDKAccessToken currentAccessToken]) {
         UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
         [self presentViewController:nav animated:NO completion:nil];
-    } else {
-        // show the signup or login screen
+    }
+    else {
+        PFUser *currentUser = [PFUser currentUser];
+        if (currentUser.username) {
+            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
+            [self presentViewController:nav animated:NO completion:nil];
+        } else {
+            // show the signup or login screen
+        }
     }
 }
 
@@ -203,6 +238,7 @@
 
 #pragma mark - Navigation
 
+// pure login, create parse user (no fb)
 - (void) loginPressed
 {
     self.view.userInteractionEnabled = NO;
@@ -212,6 +248,7 @@
     
     self.usernameTextField.text = @"";
     self.passwordTextField.text = @"";
+    
     [PFUser logInWithUsernameInBackground:username password:password
                                     block:^(PFUser *user, NSError *error) {
                                         if (user) {
@@ -226,11 +263,61 @@
     
 }
 
+- (void) loginWithFacebook {
+    // Set permissions required from the facebook user account
+    NSArray *permissionsArray = @[ @"public_profile", @"email", @"user_friends"];
+    
+    // Login PFUser using Facebook
+    [PFFacebookUtils logInInBackgroundWithReadPermissions:permissionsArray block:^(PFUser *user, NSError *error) {
+        if (!user) {
+            NSLog(@"Uh oh. The user cancelled the Facebook login.");
+        } else if (user.isNew) {
+            NSLog(@"User signed up and logged in through Facebook!");
+            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
+            
+            user[@"radius"] = [NSNumber numberWithDouble:10.0];
+            user[@"setUpDone"] = @NO;
+            [user saveInBackground];
+            
+            [self presentViewController:nav animated:NO completion:nil];
+        } else {
+            NSLog(@"User logged in through Facebook!");
+            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
+            [self presentViewController:nav animated:NO completion:nil];
+        }
+    }];
+}
+
 - (void) signupPressed
 {
     SignUpViewController *signUpVC = [[SignUpViewController alloc] init];
     [self presentViewController:signUpVC animated:YES completion:NULL];
 }
+
+//- (void) loginButton:(FBSDKLoginButton *)loginButton didCompleteWithResult:(FBSDKLoginManagerLoginResult *)result error:(NSError *)error
+//{
+//    if (error) {
+//        // TODO: handle error
+//        return;
+//    }
+//    else if (result.isCancelled) {
+//        // TODO: handle cancellation
+//        return;
+//    }
+//    else if ([result.grantedPermissions containsObject:@"public_profile"] && [result.grantedPermissions containsObject:@"email"] && [result.grantedPermissions containsObject:@"user_friends"]){
+//        [PFUser logInWithUsernameInBackground:result.token.userID password:PASSWORD_FB_LOGIN
+//                                        block:^(PFUser *user, NSError *error) {
+//                                            if (user) {
+//                                                UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
+//                                                [self presentViewController:nav animated:NO completion:nil];
+//                                            } else {
+//                                                // The login failed. Check error to see why.
+//                                                self.view.userInteractionEnabled = YES;
+//                                            }
+//                                        }];
+//    }
+//
+//}
 
 
 

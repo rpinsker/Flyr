@@ -5,6 +5,9 @@
 //
 
 #import <Parse/Parse.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+#import <ParseFacebookUtilsV4/PFFacebookUtils.h>
 #import "LoginViewController.h"
 
 // If you want to use any of the UI components, uncomment this line
@@ -52,11 +55,9 @@
     [PFACL setDefaultACL:defaultACL withAccessForCurrentUser:YES];
 
     // Override point for customization after application launch.
-
+    
     LoginViewController *loginVC =[[LoginViewController alloc] init];
     loginVC.cameFromSignup = FALSE;
-    self.window.rootViewController = loginVC;
-    [self.window makeKeyAndVisible];
 
     if (application.applicationState != UIApplicationStateBackground) {
         // Track an app open here if we launch with a push, unless
@@ -87,7 +88,15 @@
                                                          UIRemoteNotificationTypeSound)];
     }
 
-    return YES;
+    //return YES;
+    [FBSDKLoginButton class];
+    [PFFacebookUtils initializeFacebookWithApplicationLaunchOptions:launchOptions];
+    
+    self.window.rootViewController = loginVC;
+    [self.window makeKeyAndVisible];
+    
+    return [[FBSDKApplicationDelegate sharedInstance] application:application
+                                    didFinishLaunchingWithOptions:launchOptions];
 }
 
 #pragma mark Push Notifications
@@ -143,5 +152,16 @@
 //         annotation:(id)annotation {
 //    return [PFFacebookUtils handleOpenURL:url];
 //}
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    return [[FBSDKApplicationDelegate sharedInstance] application:application
+                                                          openURL:url
+                                                sourceApplication:sourceApplication
+                                                       annotation:annotation];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [FBSDKAppEvents activateApp];
+}
 
 @end

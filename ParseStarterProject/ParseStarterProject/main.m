@@ -14,3 +14,13 @@ int main(int argc, char *argv[])
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([ParseStarterProjectAppDelegate class]));
     }
 }
+
+//FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc]
+//                              initWithGraphPath:@"/me/friends"
+//                              parameters:params
+//                              HTTPMethod:@"GET"];
+//[request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection,
+//                                      id result,
+//                                      NSError *error) {
+//    // Handle the result
+//}];
