@@ -48,6 +48,7 @@
 		CC2C1FB91ACC73C3007D71A0 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2C1FB81ACC73C3007D71A0 /* MessageUI.framework */; };
 		CC2F1A7D1B65C2E900A2FB99 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2F1A7C1B65C2E900A2FB99 /* AVFoundation.framework */; };
 		CC2F1A7F1B65C6FB00A2FB99 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC2F1A7E1B65C6FB00A2FB99 /* CoreMotion.framework */; };
+		CC2F1A831B65D3B000A2FB99 /* map-pin-red-md.png in Resources */ = {isa = PBXBuildFile; fileRef = CC2F1A821B65D3B000A2FB99 /* map-pin-red-md.png */; };
 		CC3F37061B0BE8BD003EFD68 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC3F37041B0BE8BD003EFD68 /* AddressBook.framework */; };
 		CC3F37071B0BE8BD003EFD68 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC3F37051B0BE8BD003EFD68 /* AddressBookUI.framework */; };
 		CC3F370A1B0C2442003EFD68 /* ContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3F37091B0C2442003EFD68 /* ContactTableViewCell.m */; };
@@ -120,6 +121,7 @@
 		CC2C1FB81ACC73C3007D71A0 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		CC2F1A7C1B65C2E900A2FB99 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		CC2F1A7E1B65C6FB00A2FB99 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		CC2F1A821B65D3B000A2FB99 /* map-pin-red-md.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "map-pin-red-md.png"; sourceTree = "<group>"; };
 		CC3F37041B0BE8BD003EFD68 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
 		CC3F37051B0BE8BD003EFD68 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
 		CC3F37081B0C2442003EFD68 /* ContactTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContactTableViewCell.h; sourceTree = "<group>"; };
@@ -212,6 +214,7 @@
 		09ABC07713A1D52D009C3FCF /* ParseStarterProject */ = {
 			isa = PBXGroup;
 			children = (
+				CC2F1A821B65D3B000A2FB99 /* map-pin-red-md.png */,
 				CC48C8901AF064F700148704 /* summerbreeze.jpg */,
 				CC3F370B1B0C5C71003EFD68 /* facebook-default-no-profile-pic.jpg */,
 				09ABC08013A1D52D009C3FCF /* ParseStarterProjectAppDelegate.h */,
@@ -345,6 +348,7 @@
 				09ABC07C13A1D52D009C3FCF /* InfoPlist.strings in Resources */,
 				CC48C8911AF064F700148704 /* summerbreeze.jpg in Resources */,
 				09ABC08513A1D52E009C3FCF /* MainWindow.xib in Resources */,
+				CC2F1A831B65D3B000A2FB99 /* map-pin-red-md.png in Resources */,
 				CC3F370C1B0C5C71003EFD68 /* facebook-default-no-profile-pic.jpg in Resources */,
 				09ABC08B13A1D52E009C3FCF /* ParseStarterProjectViewController.xib in Resources */,
 				09144A7313C2997E00388B00 /* Entitlements.plist in Resources */,

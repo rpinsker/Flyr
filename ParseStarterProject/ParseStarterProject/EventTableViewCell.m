@@ -46,7 +46,7 @@
         
         self.sv = [[UIScrollView alloc] init];
         self.sv.scrollEnabled = YES;
-        self.sv.backgroundColor = [UIColor redColor];
+        self.sv.backgroundColor = [UIColor darkGrayColor];
         self.sv.bounces = NO;
         self.sv.delegate = self;
         self.sv.userInteractionEnabled = NO;
@@ -95,56 +95,65 @@
 - (void) setImage:(UIImage *)image
 {
     _image = image;
+    [self.motionManager stopGyroUpdates];
     self.eventImageView.image = image;
-    [self.eventImageView setFrame:CGRectMake(0, 0, image.size.width, self.frame.size.height)];
-    self.eventImageView.contentMode = UIViewContentModeScaleAspectFit;
-    
-    CGRect imageViewFrame = AVMakeRectWithAspectRatioInsideRect(image.size, self.eventImageView.frame);
-    [self.eventImageView setFrame:CGRectMake(0, 0, imageViewFrame.size.width, imageViewFrame.size.height)];
-    
-    self.sv.contentSize = imageViewFrame.size;
-    self.sv.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
-    self.sv.contentOffset = CGPointMake(self.eventImageView.frame.size.width / 2.0, 0);
-    
-    //Gyroscope
-    if([self.motionManager isGyroAvailable])
-    {
-        /* Start the gyroscope if it is not active already */
-        if([self.motionManager isGyroActive] == NO)
+    CGFloat heightToWidth = image.size.height / image.size.width;
+    NSLog(@"%f",heightToWidth);
+    if (heightToWidth > 1.25) {
+        self.eventImageView.contentMode = UIViewContentModeScaleAspectFill;
+        self.sv.frame = self.bounds;
+        self.eventImageView.frame = self.sv.bounds;
+    }
+    else {
+        [self.eventImageView setFrame:CGRectMake(0, 0, image.size.width, self.frame.size.height)];
+        self.eventImageView.contentMode = UIViewContentModeScaleAspectFit;
+        
+        CGRect imageViewFrame = AVMakeRectWithAspectRatioInsideRect(image.size, self.eventImageView.frame);
+        [self.eventImageView setFrame:CGRectMake(0, 0, imageViewFrame.size.width, self.frame.size.height)];
+        
+        self.sv.contentSize = imageViewFrame.size;
+        self.sv.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+        self.sv.contentOffset = CGPointMake(self.eventImageView.frame.size.width / 2.0, 0);
+        
+        //Gyroscope
+        if([self.motionManager isGyroAvailable])
         {
-            /* Update us 2 times a second */
-            [self.motionManager setGyroUpdateInterval:1.0f / 60.0f];
-            
-            /* Add on a handler block object */
-            CGFloat motionMovingRate = 8;
-            
-            //get the max and min offset x value
-            int maxXOffset = self.sv.contentSize.width - self.sv.frame.size.width;
-            int minXOffset = 0;
-            /* Receive the gyroscope data on this block */
-            [self.motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue]
-                                            withHandler:^(CMGyroData *gyroData, NSError *error)
-             {
-                 if (fabs(gyroData.rotationRate.y) >= 0.1) {
-                     CGFloat targetX = self.sv.contentOffset.x - gyroData.rotationRate.y * motionMovingRate;
-                     //check if the target x is less than min or larger than max
-                     //if do, use min or max
-                     if(targetX > maxXOffset)
-                         targetX = maxXOffset;
-                     else if (targetX < minXOffset)
-                         targetX = minXOffset;
-                     
-                     //set up the content off
-                     self.sv.contentOffset = CGPointMake(targetX, 0);
-                 }
-             }];
+            /* Start the gyroscope if it is not active already */
+            if([self.motionManager isGyroActive] == NO)
+            {
+                /* Update us 2 times a second */
+                [self.motionManager setGyroUpdateInterval:1.0f / 60.0f];
+                
+                /* Add on a handler block object */
+                CGFloat motionMovingRate = 8;
+                
+                //get the max and min offset x value
+                int maxXOffset = self.sv.contentSize.width - self.sv.frame.size.width;
+                int minXOffset = 0;
+                /* Receive the gyroscope data on this block */
+                [self.motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue]
+                                                withHandler:^(CMGyroData *gyroData, NSError *error)
+                 {
+                     if (fabs(gyroData.rotationRate.y) >= 0.3) {
+                         CGFloat targetX = self.sv.contentOffset.x - gyroData.rotationRate.y * motionMovingRate;
+                         //check if the target x is less than min or larger than max
+                         //if do, use min or max
+                         if(targetX > maxXOffset)
+                             targetX = maxXOffset;
+                         else if (targetX < minXOffset)
+                             targetX = minXOffset;
+                         
+                         //set up the content off
+                         self.sv.contentOffset = CGPointMake(targetX, 0);
+                     }
+                 }];
+            }
+        }
+        else
+        {
+            NSLog(@"Gyroscope not Available!");
         }
     }
-    else
-    {
-        NSLog(@"Gyroscope not Available!");
-    }
-    
     // 1. scaleAspectFill
     // 2. nothing
 }

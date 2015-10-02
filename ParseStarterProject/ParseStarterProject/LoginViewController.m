@@ -15,7 +15,7 @@
 
 #import "ShareViewController.h"
 
-@interface LoginViewController () <FBSDKLoginButtonDelegate>
+@interface LoginViewController () <FBSDKLoginButtonDelegate, NSURLConnectionDelegate>
 
 @property (strong, nonatomic) UITextField *usernameTextField;
 @property (strong, nonatomic) UITextField *passwordTextField;
@@ -38,45 +38,45 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-/* FOR MAKING TEST EVENTS 
-    // make events
-    for (int i = 0; i < 9; i++) {
-        PFObject *event = [PFObject objectWithClassName:@"Event"];
-        event[@"eventName"] = [NSString stringWithFormat:@"Event 1%d",i];
-        event[@"eventDescription"] = [NSString stringWithFormat:@"%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n",i,i,i,i,i,i,i,i,i,i,i,i,i,i,i];
-        
-        // start date
-        NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
-        dateComponents.month = 4;
-        dateComponents.day = 2;
-        dateComponents.hour = i+12;
-        dateComponents.year = 2015;
-        //dateComponents.timeZone = [NSTimeZone timeZoneWithName:@"US/Central"];
-        dateComponents.minute = 0;
-        NSCalendar *gregorian = [[NSCalendar alloc]
-                                 initWithCalendarIdentifier:NSGregorianCalendar];
-        NSDate *startDate = [gregorian dateFromComponents:dateComponents];
-        event[@"startTime"] = startDate;
-        dateComponents.hour = i+12+2;
-        NSDate *endDate = [gregorian dateFromComponents:dateComponents];
-        event[@"endTime"] = endDate;
-        event[@"stringLocation"] = @"1003 E 61st street Chicago IL, 60637";
-        [event save];
-        
-        CLGeocoder *geocoder = [[CLGeocoder alloc] init];
-        [geocoder geocodeAddressString:@"1003 E 61st street chicago IL, 60637" completionHandler:^(NSArray *placemarks, NSError *error) {
-            if (placemarks) {
-                CLPlacemark *placemark = placemarks[0];
-                PFGeoPoint *geopoint = [PFGeoPoint geoPointWithLocation:placemark.location];
-                event[@"location"] = geopoint;
-                [event save];
-            }
-        }];
-        
-    }
-  
-   */
-
+    /* FOR MAKING TEST EVENTS
+     // make events
+     for (int i = 0; i < 9; i++) {
+     PFObject *event = [PFObject objectWithClassName:@"Event"];
+     event[@"eventName"] = [NSString stringWithFormat:@"Event 1%d",i];
+     event[@"eventDescription"] = [NSString stringWithFormat:@"%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n",i,i,i,i,i,i,i,i,i,i,i,i,i,i,i];
+     
+     // start date
+     NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
+     dateComponents.month = 4;
+     dateComponents.day = 2;
+     dateComponents.hour = i+12;
+     dateComponents.year = 2015;
+     //dateComponents.timeZone = [NSTimeZone timeZoneWithName:@"US/Central"];
+     dateComponents.minute = 0;
+     NSCalendar *gregorian = [[NSCalendar alloc]
+     initWithCalendarIdentifier:NSGregorianCalendar];
+     NSDate *startDate = [gregorian dateFromComponents:dateComponents];
+     event[@"startTime"] = startDate;
+     dateComponents.hour = i+12+2;
+     NSDate *endDate = [gregorian dateFromComponents:dateComponents];
+     event[@"endTime"] = endDate;
+     event[@"stringLocation"] = @"1003 E 61st street Chicago IL, 60637";
+     [event save];
+     
+     CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+     [geocoder geocodeAddressString:@"1003 E 61st street chicago IL, 60637" completionHandler:^(NSArray *placemarks, NSError *error) {
+     if (placemarks) {
+     CLPlacemark *placemark = placemarks[0];
+     PFGeoPoint *geopoint = [PFGeoPoint geoPointWithLocation:placemark.location];
+     event[@"location"] = geopoint;
+     [event save];
+     }
+     }];
+     
+     }
+     
+     */
+    
     self.view = [[UIControl alloc] initWithFrame:self.view.frame];
     [(UIControl *)(self.view) addTarget:self
                                  action:@selector(backgroundTapped)
@@ -156,8 +156,8 @@
     FBLoginButton.titleLabel.font = [UIFont fontWithName:FONT_STRING size:20];
     
     [FBLoginButton addTarget:self
-                    action:@selector(loginWithFacebook)
-          forControlEvents:UIControlEventTouchUpInside];
+                      action:@selector(loginWithFacebook)
+            forControlEvents:UIControlEventTouchUpInside];
     
     [self.view addSubview:FBLoginButton];
     
@@ -178,13 +178,13 @@
     [self.view addSubview:signupButton];
     
     
-//    // facebook login button
-//    FBSDKLoginButton *fbLoginButton = [[FBSDKLoginButton alloc] init];
-//    fbLoginButton.frame = CGRectMake(0, loginButton.frame.origin.y + 1.5*textFieldHeight, fbLoginButton.frame.size.width, fbLoginButton.frame.size.height);
-//    fbLoginButton.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2.0,fbLoginButton.frame.origin.y);
-//    fbLoginButton.readPermissions = @[@"public_profile", @"email", @"user_friends"];
-//    fbLoginButton.delegate = self;
-//    [self.view addSubview:fbLoginButton];
+    //    // facebook login button
+    //    FBSDKLoginButton *fbLoginButton = [[FBSDKLoginButton alloc] init];
+    //    fbLoginButton.frame = CGRectMake(0, loginButton.frame.origin.y + 1.5*textFieldHeight, fbLoginButton.frame.size.width, fbLoginButton.frame.size.height);
+    //    fbLoginButton.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2.0,fbLoginButton.frame.origin.y);
+    //    fbLoginButton.readPermissions = @[@"public_profile", @"email", @"user_friends"];
+    //    fbLoginButton.delegate = self;
+    //    [self.view addSubview:fbLoginButton];
     
     
     // FLYR text
@@ -207,19 +207,89 @@
 - (void) viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    if ([FBSDKAccessToken currentAccessToken]) {
-        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
-        [self presentViewController:nav animated:NO completion:nil];
-    }
-    else {
         PFUser *currentUser = [PFUser currentUser];
         if (currentUser.username) {
+            if ([PFFacebookUtils isLinkedWithUser:[PFUser currentUser]]) {
+                [FBSDKAccessToken refreshCurrentAccessToken:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+                    if (!error) {
+                        [self getFBEventsWithPrivacy:YES];
+                        [self getFBEventsWithPrivacy:NO];
+                    }
+                }];
+            }
             UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
             [self presentViewController:nav animated:NO completion:nil];
         } else {
             // show the signup or login screen
         }
-    }
+}
+
+- (void)getFBEventsWithPrivacy:(BOOL)isPrivate
+{
+    FBSDKAccessToken *token = [FBSDKAccessToken currentAccessToken];
+    NSDate *now = [NSDate date];
+    NSString *fields = @"id,name,start_time,end_time,place,description,cover";
+    NSString *privacy = isPrivate ? @"private" : @"public";
+    NSString *graphPath = [NSString stringWithFormat:@"/%@/events?since=yesterday&privacy=%@&fields=%@",token.userID,privacy,fields];//since=5 days ago&fields=%@",token.userID,fields];
+    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc]
+                                  initWithGraphPath:graphPath
+                                  parameters:nil
+                                  HTTPMethod:@"GET"];
+    [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection,
+                                          id result,
+                                          NSError *error) {
+        NSDictionary *dict = (NSDictionary *)result;
+        NSArray *events = dict[@"data"];
+        for (NSDictionary *event in events)
+        {
+            PFQuery *query = [PFQuery queryWithClassName:@"Event"];
+            [query whereKey:@"FBId" equalTo:event[@"id"]];
+            [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                if ([objects count] == 0) {
+                    PFObject *newEvent = [PFObject objectWithClassName:@"Event"];
+                    newEvent[@"FBId"] = event[@"id"];
+                    newEvent[@"eventName"] = event[@"name"];
+                    
+                    NSString *startTimeString = [event[@"start_time"] stringByReplacingOccurrencesOfString:@"T" withString:@" "];
+                    NSString *endTimeString = [event[@"end_time"] stringByReplacingOccurrencesOfString:@"T" withString:@" "];
+                    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+                    [df setDateFormat:@"yyyy'-'MM'-'dd' 'HH':'mm':'ssZZZZ"];
+                    NSDate *startDate = [df dateFromString:startTimeString];
+                    NSDate *endDate = [df dateFromString:endTimeString];
+                    
+                    
+                    newEvent[@"startTime"] = startDate ? startDate : [NSDate dateWithTimeIntervalSince1970:0];
+                    newEvent[@"endTime"] = endDate ? endDate : [[NSDate date] dateByAddingTimeInterval:60*60*3];
+                    NSDictionary *location = event[@"place"][@"location"];
+                    NSString *stringLoc = [NSString stringWithFormat:@"%@, %@, %@ %@",location[@"street"],location[@"city"],location[@"state"],location[@"zip"]];
+                    newEvent[@"stringLocation"] = stringLoc;
+                    newEvent[@"location"] = [PFGeoPoint geoPointWithLatitude:[location[@"latitude"] doubleValue] longitude:[location[@"longitude"] doubleValue]];
+                    
+                    if ([[connection.URLResponse.URL absoluteString] containsString:@"private"]) {
+                        newEvent[@"FBUserID"] = [FBSDKAccessToken currentAccessToken].userID;
+                    }
+                    else {
+                        newEvent[@"FBUserID"] = @"0";
+                    }
+                    
+                    /* start image */
+                    NSString *urlString = event[@"cover"][@"source"];
+                    NSData * imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString:urlString]];
+                    
+                    PFFile *imageFile = [PFFile fileWithName:@"Image.jpg" data:imageData];
+                    [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        NSLog(@"HERE");
+                    }];
+                    
+                    [newEvent setObject:imageFile forKey:@"image"];
+                    /* end image */
+                    [newEvent saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        NSLog(@"HERE");
+                    }];
+                }
+            }];
+        }
+    }];
 }
 
 - (void) backgroundTapped
@@ -265,7 +335,7 @@
 
 - (void) loginWithFacebook {
     // Set permissions required from the facebook user account
-    NSArray *permissionsArray = @[ @"public_profile", @"email", @"user_friends"];
+    NSArray *permissionsArray = @[ @"public_profile", @"email", @"user_friends",@"user_events"];
     
     // Login PFUser using Facebook
     [PFFacebookUtils logInInBackgroundWithReadPermissions:permissionsArray block:^(PFUser *user, NSError *error) {
@@ -279,8 +349,13 @@
             user[@"setUpDone"] = @NO;
             [user saveInBackground];
             
+            [self getFBEventsWithPrivacy:YES];
+            [self getFBEventsWithPrivacy:NO];
+            
             [self presentViewController:nav animated:NO completion:nil];
         } else {
+            [self getFBEventsWithPrivacy:YES];
+            [self getFBEventsWithPrivacy:NO];
             NSLog(@"User logged in through Facebook!");
             UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[ShareViewController alloc] init]];
             [self presentViewController:nav animated:NO completion:nil];

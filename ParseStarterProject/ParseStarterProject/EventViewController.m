@@ -12,6 +12,7 @@
 #import "EventTableViewCell.h"
 #import "MoreViewController.h"
 #import <MapKit/MapKit.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <Parse/Parse.h>
 #import "ErrorHandlingController.h"
 
@@ -261,6 +262,17 @@
         if (!error) {
             // The find succeeded.
             NSLog(@"Successfully retrieved %lu events.", (unsigned long)objects.count);
+            NSMutableArray *objectsMutable = [objects mutableCopy];
+            for (PFObject *object in objects) {
+                NSString *FBUserID = object[@"FBUserID"];
+                if (![FBUserID isEqualToString:@"0"]) // private event
+                {
+                    if (![[FBSDKAccessToken currentAccessToken].userID isEqualToString:FBUserID]) { // can't show this event
+                        [objectsMutable removeObject:object];
+                    }
+                }
+            }
+            objects = [objectsMutable copy];
             self.numEventsToShow = objects.count;
             self.eventsToShow = objects;
             [self.tableView reloadData];
@@ -394,6 +406,17 @@
     [eventQuery orderByAscending:@"endTime"];
     NSMutableArray *eventItemsMut = [NSMutableArray array];
     [eventQuery findObjectsInBackgroundWithBlock:^(NSArray *items, NSError *error) {
+        NSMutableArray *objectsMutable = [items mutableCopy];
+        for (PFObject *object in items) {
+            NSString *FBUserID = object[@"FBUserID"];
+            if (![FBUserID isEqualToString:@"0"]) // private event
+            {
+                if (![[FBSDKAccessToken currentAccessToken].userID isEqualToString:FBUserID]) { // can't show this event
+                    [objectsMutable removeObject:object];
+                }
+            }
+        }
+        items = [objectsMutable copy];
         [eventItemsMut addObjectsFromArray:items];
         [(UIRefreshControl *)sender endRefreshing];
         self.lastPullOfEvents = [NSDate date];
@@ -494,6 +517,18 @@
         if (!error) {
             self.lastPullOfEvents = [NSDate date];
             if ([items count] != 0) {
+                NSMutableArray *objectsMutable = [items mutableCopy];
+                for (PFObject *object in items) {
+                    NSString *FBUserID = object[@"FBUserID"];
+                    if (![FBUserID isEqualToString:@"0"]) // private event
+                    {
+                        if (![[FBSDKAccessToken currentAccessToken].userID isEqualToString:FBUserID]) { // can't show this event
+                            [objectsMutable removeObject:object];
+                        }
+                    }
+                }
+                items = [objectsMutable copy];
+                
                 NSMutableArray *itemsToAddToEventsToShow = [[NSMutableArray alloc] initWithArray:items];
                 NSInteger lastSection = [self.eventsToShow count];
                 for (PFObject *item in items) { // add the new items
@@ -544,7 +579,7 @@
         eventSwiped = self.eventsToShow[indexPath.row];
         EventDetailViewController *detailVC = [[EventDetailViewController alloc] init];
         detailVC.detailString = eventSwiped[@"eventDescription"];
-        detailVC.addressString = eventSwiped[@"stringLocation"];
+        detailVC.location = eventSwiped[@"location"];
         
         [self.navigationController pushViewController:detailVC
                                              animated:YES];

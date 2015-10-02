@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+@class PFGeoPoint;
+
 @interface EventDetailViewController : UIViewController
 
-@property (nonatomic, strong) NSString *addressString;
+@property (nonatomic, strong) PFGeoPoint *location;
 @property (nonatomic, strong) NSString *detailString;
 
 @end

@@ -27,6 +27,7 @@ static const NSString *uberClientID = @"F501X0Phg7ifm_9PmBo3orD5kX806ZSd";
 @property (nonatomic) double startLocationLongitude;
 @property (nonatomic, strong) CLPlacemark *endPlacemark;
 @property (nonatomic, strong) NSString *uberProductID;
+@property (nonatomic, strong) UIImageView *snapshotImageView;
 
 @end
 
@@ -36,6 +37,11 @@ static const NSString *uberClientID = @"F501X0Phg7ifm_9PmBo3orD5kX806ZSd";
 - (void) viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    
+    // snapshot image view
+    self.snapshotImageView = [[UIImageView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.snapshotImageView.backgroundColor = [UIColor grayColor];
+    [self.view addSubview:self.snapshotImageView];
     
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
     
@@ -50,55 +56,70 @@ static const NSString *uberClientID = @"F501X0Phg7ifm_9PmBo3orD5kX806ZSd";
     swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
     [self.view addGestureRecognizer:swipeRight];
     
-    //set up mapView
-    MKMapView *map = [[MKMapView alloc] initWithFrame:CGRectMake(0,0,mainScreenBounds.size.width, mainScreenBounds.size.height)];
-    map.zoomEnabled = YES;
-    map.scrollEnabled = NO;
+//    //set up mapView
+//    MKMapView *map = [[MKMapView alloc] initWithFrame:CGRectMake(0,0,mainScreenBounds.size.width, mainScreenBounds.size.height)];
+//    map.zoomEnabled = YES;
+//    map.scrollEnabled = NO;
     
-    
-    // get location of event
-    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
-    [geocoder geocodeAddressString:self.addressString completionHandler:^(NSArray *placemarks, NSError *error) {
-        if (placemarks) {
-            CLPlacemark *placemark = placemarks[0];
-            self.endPlacemark = placemark;
-            MKPlacemark *mkplacemark = [[MKPlacemark alloc] initWithPlacemark:placemark];
-            [map addAnnotation:mkplacemark];
-            
-            if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) { // show their location on the map
-                map.showsUserLocation = YES;
-                CLLocationManager *manager = [[CLLocationManager alloc] init];
-                CLLocation *loc = [manager location];
-                
-                NSLog(@"lat: %f",(double)mkplacemark.coordinate.latitude);
-                NSLog(@"lat: %f",(double)loc.coordinate.latitude);
-                double deltaX = fabs((double)mkplacemark.coordinate.latitude - (double)loc.coordinate.latitude);
-                double deltaY = fabs((double)mkplacemark.coordinate.longitude - (double)loc.coordinate.longitude);
-                
-                MKCoordinateSpan span = MKCoordinateSpanMake(2.7*deltaX, 2.7*deltaY);
-                double latCenter = MAX((double)mkplacemark.coordinate.latitude,(double)loc.coordinate.latitude) - (fabs((double)mkplacemark.coordinate.latitude - (double)loc.coordinate.latitude))/2.0;
-                double longCenter = MAX((double)mkplacemark.coordinate.longitude,(double)loc.coordinate.longitude) - (fabs((double)mkplacemark.coordinate.longitude - (double)loc.coordinate.longitude) / 2.0);
-                CLLocationCoordinate2D centerCoord = CLLocationCoordinate2DMake(latCenter, longCenter);
-               // map.region = MKCoordinateRegionMake(mkplacemark.coordinate, span);
-                map.region = MKCoordinateRegionMake(centerCoord, span);
-            }
-            else {
-                MKCoordinateRegion region;
-                region.center = mkplacemark.coordinate;
-                region.span = MKCoordinateSpanMake(.005, .005);
-                map.region = region;
-            }
-            
-        }
-    }];
+//    // get location of event
+//    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+//    [geocoder geocodeAddressString:self.addressString completionHandler:^(NSArray *placemarks, NSError *error) {
+//        if (placemarks) {
+//            CLPlacemark *placemark = placemarks[0];
+//            self.endPlacemark = placemark;
+//            MKPlacemark *mkplacemark = [[MKPlacemark alloc] initWithPlacemark:placemark];
+//            [map addAnnotation:mkplacemark];
     
     // get current location
     PFGeoPoint *location = [PFUser currentUser][@"location"];
     self.startLocationLatitude = location.latitude;
     self.startLocationLongitude = location.longitude;
     
+    MKCoordinateRegion region;
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorizedWhenInUse) { // show their location on the map
+        CLLocationManager *manager = [[CLLocationManager alloc] init];
+        CLLocation *loc = [manager location];
+        
+        double deltaX = fabs((double)self.location.latitude - (double)loc.coordinate.latitude);
+        double deltaY = fabs((double)self.location.longitude - (double)loc.coordinate.longitude);
+        
+        MKCoordinateSpan span = MKCoordinateSpanMake(2.7*deltaX, 2.7*deltaY);
+        double latCenter = MAX((double)self.location.latitude,(double)loc.coordinate.latitude) - (fabs((double)self.location.latitude - (double)loc.coordinate.latitude))/2.0;
+        double longCenter = MAX((double)self.location.longitude,(double)loc.coordinate.longitude) - (fabs((double)self.location.longitude - (double)loc.coordinate.longitude) / 2.0);
+        CLLocationCoordinate2D centerCoord = CLLocationCoordinate2DMake(latCenter, longCenter);
+        // map.region = MKCoordinateRegionMake(mkplacemark.coordinate, span);
+        region = MKCoordinateRegionMake(centerCoord, span);
+    }
+    else {
+        region.center = CLLocationCoordinate2DMake(self.location.latitude, self.location.longitude);
+        region.span = MKCoordinateSpanMake(.005, .005);
+    }
     
-    [self.view addSubview:map];
+    MKMapSnapshotOptions *options = [[MKMapSnapshotOptions alloc] init];
+    options.region = region;
+    options.size = CGSizeMake(mainScreenBounds.size.width, mainScreenBounds.size.height);
+    options.scale = [UIScreen mainScreen].scale;
+    
+    MKMapSnapshotter *snapshotter = [[MKMapSnapshotter alloc] initWithOptions:options];
+    [snapshotter startWithCompletionHandler:^(MKMapSnapshot *snapshot, NSError *error) {
+        UIImage *snapshotImage = snapshot.image;
+        UIGraphicsBeginImageContextWithOptions(snapshotImage.size, YES, snapshotImage.scale);
+        [snapshotImage drawAtPoint:CGPointZero];
+        
+        UIImage *pinImage = [UIImage imageNamed:@"map-pin-red-md.png"];
+        [pinImage drawAtPoint:[snapshot pointForCoordinate:CLLocationCoordinate2DMake(self.location.latitude, self.location.longitude)]];
+        [pinImage drawAtPoint:[snapshot pointForCoordinate:CLLocationCoordinate2DMake(self.startLocationLatitude, self.startLocationLongitude)]];
+        
+        self.snapshotImageView.image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+    }];
+    
+    
+//    }];
+    
+    
+//    [self.view addSubview:map];
     
     //set up text view
     UITextView *detailTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, mainScreenBounds.size.height/2, mainScreenBounds.size.width, mainScreenBounds.size.height/2 - BUTTON_HEIGHT)];
